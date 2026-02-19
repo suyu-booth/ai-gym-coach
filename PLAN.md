@@ -13,12 +13,14 @@ The user is a 32-year-old cabaret dancer (5'11", 24.6% BF, weak knees) training 
 The following features from the JSX must be fully realized in the Python backend:
 
 ### 1. Day Configuration (4 day types)
-| Day | Key | Label | Has Workout |
-|-----|-----|-------|-------------|
-| Mon | `monday` | Monday - Upper Push | Yes |
-| Tue | `tuesday` | Tuesday - Lower Body | Yes |
-| Thu | `thursday` | Thursday - Upper Pull | Yes |
-| Sun | `sunday` | Sunday - Bachata | Tracked only |
+| Day | Key | Label | Icon | Color | Has Workout |
+|-----|-----|-------|------|-------|-------------|
+| Mon | `monday` | Monday - Upper Push | 💪 | #3B82F6 | Yes |
+| Tue | `tuesday` | Tuesday - Lower Body | 🦵 | #22C55E | Yes |
+| Thu | `thursday` | Thursday - Upper Pull | 🏋️ | #A855F7 | Yes |
+| Sun | `sunday` | Sunday - Bachata | 💃 | #EC4899 | Tracked only |
+
+Each day config also stores `colorLight` for gradient backgrounds (e.g. `#1e3a5f` for Monday).
 
 ### 2. Exact Exercise Library
 
@@ -102,13 +104,15 @@ When a workout is completed, the following must be stored (and synced to Notion)
 
 | Field | Type | Options |
 |-------|------|---------|
-| `difficulty` | int 1-5 | Easy, Moderate, Good, Hard, Max |
-| `energy` | string | "High", "Medium", "Low" |
-| `kneeComfort` | string | "No pain", "Mild discomfort", "Pain" |
-| `mood` | string | "Great", "Good", "Neutral", "Tired" |
+| `difficulty` | int 1-5 | "Easy 😎", "Moderate 🙂", "Good 💪", "Hard 😤", "Max 🔥" |
+| `energy` | string | "⚡ High", "😐 Medium", "😴 Low" |
+| `kneeComfort` | string | "✅ No pain", "⚠️ Mild discomfort", "🛑 Pain" |
+| `mood` | string | "😊 Great", "😌 Good", "😐 Neutral", "😓 Tired" |
 | `notes` | string | Free text |
 | `sauna` | boolean | Whether sauna was used |
 | `duration` | int | Minutes elapsed |
+
+Note: Difficulty is stored as an int (1-5) but has display labels with emojis. Energy, knee comfort, and mood are stored as the full emoji+text string (matching the JSX UI).
 
 ### 5. Workout Session Data Structure
 
@@ -144,6 +148,16 @@ WorkoutSession:
     notes: string
     sauna: boolean
 ```
+
+**Set completion rule**: A set is `completed: true` when both `weight` is not null AND `reps` is not null (for weighted exercises). For bodyweight exercises, only `reps` needs to be non-null. Weight and reps are always tracked as **separate fields** — both values must be preserved in Notion.
+
+### 5a. Quick-Log Set
+
+The JSX provides a "quick log" feature (⚡ button) that auto-fills a set with the exercise's `targetWeight` and parsed target reps (from the `reps` string, e.g. "10-12" → 10, or "12" → 12) in one action. This must be supported in the backend model and CLI.
+
+### 5b. Rest Timer
+
+After logging a set, a 90-second rest timer starts automatically. The timer counts down and can be skipped. This is a UI-only feature (not persisted to Notion) but must be supported in the CLI's interactive workout mode.
 
 ### 6. Weight Trend Analysis
 
@@ -182,15 +196,17 @@ Profile:
   - `Exercise` (title)
   - `Suggested` (text — target weight from progressive overload)
   - `Sets x Reps` (text — e.g., "3x10-12")
-  - `Set 1`, `Set 2`, `Set 3`, `Set 4` (text — actual weight used per set)
+  - `Set 1`, `Set 2`, `Set 3`, `Set 4` (text — stores **weight × reps**, e.g. "47.5 × 12", or just reps for bodyweight e.g. "10")
   - `Notes` (text)
-- Exercise Details heading + form cues per exercise
+- Exercise Details heading + toggle blocks with form cues
+
+**Important**: Each Set column must encode both weight and reps as `"weight × reps"` to preserve both values from the JSX data model. When reading back, parse on `" × "` to recover `SetLog.weight` and `SetLog.reps`. For bodyweight exercises, store just the rep count (e.g. `"10"`).
 
 **Additional page-level properties to add** (for completion metadata):
-- `Difficulty` (select: 1-5)
-- `Energy` (select: High/Medium/Low)
-- `Knee Comfort` (select: No pain/Mild discomfort/Pain)
-- `Mood` (select: Great/Good/Neutral/Tired)
+- `Difficulty` (select: "1", "2", "3", "4", "5")
+- `Energy` (select: "⚡ High", "😐 Medium", "😴 Low")
+- `Knee Comfort` (select: "✅ No pain", "⚠️ Mild discomfort", "🛑 Pain")
+- `Mood` (select: "😊 Great", "😌 Good", "😐 Neutral", "😓 Tired")
 - `Sauna` (checkbox)
 - `Workout Notes` (rich text)
 
@@ -223,7 +239,7 @@ ai-gym-coach/
 
 ## Dependencies (`pyproject.toml`)
 
-- `notion-client>=2.7.0` — Official Notion Python SDK
+- `httpx>=0.27.0` — HTTP client for Notion REST API (replaces `notion-client` SDK)
 - `typer[all]>=0.15.0` — CLI framework
 - `pydantic>=2.0` — Data validation
 - `pyyaml>=6.0` — Config files
@@ -235,31 +251,26 @@ ai-gym-coach/
 
 ## Prerequisites — Notion Access
 
-Before any implementation, we need to verify Notion API access:
+**Status: COMPLETED** — Notion API access has been verified.
 
-1. **Get Notion API token** — The user needs to provide their Notion integration token (starts with `secret_...`). Created at https://www.notion.so/my-integrations
-2. **Get database ID** — The "Workout Log" database ID from the Notion URL (the 32-char hex string)
-3. **Test connection** — Install `notion-client`, connect with the token, query the database, verify we can:
-   - List pages in the Workout Log database
-   - Read page properties (Workout Name, Date, Day Type)
-   - Read child blocks of a page (find the Weight Tracking Log inline database)
-   - Query the child database to read exercise rows
-4. **Ensure the integration has access** — The Notion integration must be "connected" to the Exercise workspace/pages (user does this in Notion settings → Connections)
-
-This will be the **first thing implemented** (Step 0 below) to unblock all Notion-dependent work.
+- **API token**: Stored in env var `$NOTION_API` (starts with `ntn_...`)
+- **AI Gym Coach page ID**: `30cfcd91-d09f-806c-8149-eee20d887057` — confirmed read/write access
+- **Workout Log collection ID**: `4e387a50-855d-43b2-b2a6-a814bc3e05ab`
+- **Method**: Use Notion REST API directly via `httpx` (not the `notion-client` Python SDK). All requests include `Authorization: Bearer $NOTION_API` and `Notion-Version: 2022-06-28` headers.
+- **Scope**: Only modify the "AI Gym Coach" page and its sub-pages. Never touch other Notion pages.
 
 ---
 
 ## Implementation Steps
 
 ### Step 0: Verify Notion Access
-- Install `notion-client` in a minimal script
-- Connect with user's token
+- Use `httpx` / `curl` with `$NOTION_API` token to hit Notion REST API
 - Query the Workout Log database
 - Read a sample workout page's child blocks
 - Find and query the Weight Tracking Log inline database
 - Print parsed exercise data to confirm the schema matches our models
 - **This step gates everything else** — if Notion access fails, we fix it before proceeding
+- **Already completed** — access verified via curl, page ID and collection ID confirmed
 
 ### Step 1: Project Scaffolding
 - Create `pyproject.toml` with `[project.scripts] coach = "gym_coach.cli:app"`
@@ -269,9 +280,10 @@ This will be the **first thing implemented** (Step 0 below) to unblock all Notio
 
 Pydantic models that exactly mirror the JSX data structures:
 
-- `ExerciseTemplate` — from JSX `EXERCISES[day].exercises[i]`: id, name, sets, reps, defaultWeight, unit, notes, increment, isBodyweight
+- `DayConfig` — key, label, color, colorLight, icon (from JSX `DAY_CONFIG`)
+- `ExerciseTemplate` — from JSX `EXERCISES[day].exercises[i]`: id, name, sets, reps, defaultWeight, unit, notes, increment, isBodyweight (default False)
 - `DayTemplate` — from JSX `EXERCISES[day]`: warmup (list[str]), exercises (list[ExerciseTemplate]), cooldown (str|None), hasSauna (bool)
-- `SetLog` — weight (float|None), reps (int|None), completed (bool)
+- `SetLog` — weight (float|None), reps (int|None), completed (bool, computed: True when weight is not None AND reps is not None for weighted; just reps not None for bodyweight)
 - `ExerciseLog` — id, name, targetWeight, unit, sets (list[SetLog]), notes, isBodyweight
 - `WorkoutSession` — id, dayKey, date, startTime, endTime, duration, warmupDone, completed, exercises (list[ExerciseLog]), difficulty, energy, kneeComfort, mood, notes, sauna
 - `Profile` — name, goals, schedule, gym, sessionDuration, kneeProtocol, setupComplete
@@ -283,10 +295,10 @@ Exact Python translation of JSX `EXERCISES` constant and `DAY_CONFIG`:
 
 ```python
 DAY_CONFIG = {
-    1: {"key": "monday", "label": "Monday - Upper Push", ...},
-    2: {"key": "tuesday", "label": "Tuesday - Lower Body", ...},
-    4: {"key": "thursday", "label": "Thursday - Upper Pull", ...},
-    0: {"key": "sunday", "label": "Sunday - Bachata", ...},
+    1: DayConfig(key="monday", label="Monday - Upper Push", color="#3B82F6", color_light="#1e3a5f", icon="💪"),
+    2: DayConfig(key="tuesday", label="Tuesday - Lower Body", color="#22C55E", color_light="#1a3d2a", icon="🦵"),
+    4: DayConfig(key="thursday", label="Thursday - Upper Pull", color="#A855F7", color_light="#3b1d5e", icon="🏋️"),
+    0: DayConfig(key="sunday", label="Sunday - Bachata", color="#EC4899", color_light="#4a1a30", icon="💃"),
 }
 
 EXERCISES = {
@@ -344,15 +356,18 @@ State file caches workout history locally (synced from Notion) so the progressiv
 
 ### Step 6: Notion Client (`notion_client.py`)
 
-Wrapper around `notion-client` SDK:
+Thin wrapper around **Notion REST API** using `httpx` (not the `notion-client` SDK). Reads token from `$NOTION_API` env var. All requests use `Notion-Version: 2022-06-28` header.
 
-- `query_database(database_id, filters)` — query workout pages by date/day_type
-- `get_page(page_id)` — read page properties
-- `get_page_blocks(page_id)` — list all child blocks
+- `query_database(database_id, filters)` — POST `/databases/{id}/query`
+- `get_page(page_id)` — GET `/pages/{id}`
+- `get_page_blocks(page_id)` — GET `/blocks/{id}/children` (paginated)
 - `find_child_database(page_id)` — scan blocks for `child_database` type (the Weight Tracking Log)
 - `query_child_database(db_id)` — get exercise rows from the inline table
-- `create_page(database_id, properties, children)` — create workout page with nested blocks
-- `update_page_properties(page_id, properties)` — update completion metadata
+- `create_page(database_id, properties, children)` — POST `/pages` with nested blocks
+- `update_page_properties(page_id, properties)` — PATCH `/pages/{id}`
+- `append_block_children(block_id, children)` — PATCH `/blocks/{id}/children`
+- `update_block(block_id, data)` — PATCH `/blocks/{id}`
+- `trash_page(page_id)` — PATCH `/pages/{id}` with `{"in_trash": true}`
 
 ### Step 7: Notion Reader (`notion_reader.py`)
 
@@ -360,7 +375,7 @@ Wrapper around `notion-client` SDK:
   - Queries top-level database sorted by date
   - For each page: reads properties + finds child database + parses exercise rows
   - Maps Notion data → `WorkoutSession` model
-  - Parses `Set 1`-`Set 4` text columns into `SetLog` objects
+  - Parses `Set 1`-`Set 4` text columns into `SetLog` objects by splitting `"weight × reps"` format
   - Reads completion metadata from page properties (difficulty, energy, etc.)
 
 - `parse_workout_page(page_id) -> WorkoutSession`
@@ -381,10 +396,19 @@ Wrapper around `notion-client` SDK:
 
 - `update_workout_completion(page_id, session: WorkoutSession)`
   - Updates page properties with completion metadata (difficulty, energy, kneeComfort, mood, sauna, notes, duration)
-  - Updates Set 1-4 columns in the child database with actual weights logged
+  - Updates Set 1-4 columns in the child database with actual weight × reps data
 
 - `sync_set_data(page_id, exercise_id, sets: list[SetLog])`
   - Updates the Set 1-4 columns for a specific exercise row in the child database
+  - Format: `"weight × reps"` (e.g. `"47.5 × 12"`) for weighted exercises, `"reps"` (e.g. `"10"`) for bodyweight
+
+- `format_set_value(set_log: SetLog, is_bodyweight: bool) -> str`
+  - Formats a SetLog into the Notion text column value
+  - Weighted: `f"{weight} × {reps}"` | Bodyweight: `f"{reps}"` | Incomplete: `""`
+
+- `parse_set_value(text: str, is_bodyweight: bool) -> SetLog`
+  - Parses a Notion text column value back into a SetLog
+  - Splits on `" × "` to recover weight and reps
 
 ### Step 9: Planner (`planner.py`)
 
