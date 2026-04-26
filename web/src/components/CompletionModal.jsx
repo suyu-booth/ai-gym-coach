@@ -1,87 +1,188 @@
 import { useState } from "react";
-import { EXERCISES, DIFFICULTY_LABELS, DIFFICULTY_COLORS, ENERGY_OPTIONS, KNEE_COMFORT_OPTIONS, MOOD_OPTIONS } from "../lib/constants.js";
-import QuickSelect from "./QuickSelect.jsx";
+import {
+  EXERCISES, DIFFICULTY_NAMES,
+  ENERGY_OPTIONS, KNEE_COMFORT_OPTIONS, MOOD_OPTIONS,
+} from "../lib/constants.js";
+import { palette, type, dayway, skyGradient } from "../lib/theme.js";
+import { getDayConfig } from "../lib/utils.js";
+import Glyph from "./Glyph.jsx";
 
-export default function CompletionModal({ workout, onComplete, onClose, dayColor }) {
+function SpecRow({ label, children }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "baseline", justifyContent: "space-between",
+      gap: 16, padding: "16px 0", borderTop: `1px solid ${palette.creamFaint}`,
+      flexWrap: "wrap",
+    }}>
+      <div style={{ ...type.caps, color: palette.creamMute, minWidth: 80 }}>{label}</div>
+      <div style={{ flex: 1, textAlign: "right" }}>{children}</div>
+    </div>
+  );
+}
+
+function InlineChoice({ options, value, onChange, accent }) {
+  return (
+    <div style={{ display: "inline-flex", flexWrap: "wrap", gap: 12, justifyContent: "flex-end" }}>
+      {options.map((opt, i) => {
+        const v = typeof opt === "string" ? opt : opt.value;
+        const label = typeof opt === "string" ? opt : opt.display;
+        const selected = v === value;
+        return (
+          <button key={i} onClick={() => onChange(v)} style={{
+            background: "none", border: "none", cursor: "pointer", padding: "2px 0",
+            fontFamily: '"Fraunces", serif', fontSize: 16, fontWeight: selected ? 600 : 500,
+            fontVariationSettings: '"opsz" 64',
+            color: selected ? accent : palette.creamMute,
+            borderBottom: selected ? `1.5px solid ${accent}` : "1.5px solid transparent",
+          }}>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function CompletionModal({ workout, onComplete, onClose }) {
+  const cfg = getDayConfig(workout.dayKey);
+  const way = dayway(workout.dayKey);
   const [difficulty, setDifficulty] = useState(3);
-  const [energy, setEnergy] = useState("\u{1F610} Medium");
-  const [kneeComfort, setKneeComfort] = useState("\u2705 No pain");
-  const [mood, setMood] = useState("\u{1F60C} Good");
+  const [energy, setEnergy] = useState(ENERGY_OPTIONS[0].value);
+  const [kneeComfort, setKneeComfort] = useState(KNEE_COMFORT_OPTIONS[0].value);
+  const [mood, setMood] = useState(MOOD_OPTIONS[1].value);
   const [notes, setNotes] = useState("");
   const [sauna, setSauna] = useState(EXERCISES[workout.dayKey]?.hasSauna || false);
+
+  const setsCompleted = workout.exercises.reduce((a, e) => a + e.sets.filter(s => s.completed).length, 0);
+  const totalSets = workout.exercises.reduce((a, e) => a + e.sets.length, 0);
+  const elapsed = Math.round((Date.now() - workout.startTime) / 60000);
 
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 950,
-      background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)",
+      background: "rgba(26,42,51,0.85)", backdropFilter: "blur(8px)",
       display: "flex", alignItems: "flex-end", justifyContent: "center",
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
-        width: "100%", maxWidth: 480, background: "#111827",
-        borderRadius: "20px 20px 0 0", padding: "24px 20px 36px",
-        maxHeight: "85vh", overflowY: "auto",
+        width: "100%", maxWidth: 480,
+        background: skyGradient(1, way.dominant),
+        maxHeight: "92vh", overflowY: "auto",
+        animation: "ghFadeIn 0.35s cubic-bezier(0.2,0.7,0.2,1) both",
       }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>Workout Complete! {"\u{1F389}"}</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 20, cursor: "pointer" }}>{"\u2715"}</button>
-        </div>
-
-        {/* Difficulty */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 8, display: "block" }}>Difficulty</label>
-          <div style={{ display: "flex", gap: 6 }}>
-            {[1, 2, 3, 4, 5].map(d => (
-              <button key={d} onClick={() => setDifficulty(d)} style={{
-                flex: 1, padding: "10px 4px", borderRadius: 8,
-                border: `1px solid ${difficulty === d ? DIFFICULTY_COLORS[d] + "66" : "rgba(255,255,255,0.08)"}`,
-                background: difficulty === d ? DIFFICULTY_COLORS[d] + "22" : "rgba(255,255,255,0.03)",
-                color: difficulty === d ? DIFFICULTY_COLORS[d] : "rgba(255,255,255,0.4)",
-                fontSize: 11, fontWeight: 600, cursor: "pointer", textAlign: "center", lineHeight: 1.3,
-              }}>
-                {DIFFICULTY_LABELS[d].split(" ")[0]}<br /><span style={{ fontSize: 14 }}>{DIFFICULTY_LABELS[d].split(" ")[1]}</span>
-              </button>
-            ))}
+        <div style={{ padding: "32px 24px 36px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+            <div>
+              <div style={{ ...type.caps, color: palette.creamMute }}>Session Logged</div>
+              <h2 style={{ ...type.display, color: palette.cream, marginTop: 6 }}>Good work.</h2>
+            </div>
+            <button onClick={onClose} style={{
+              background: "none", border: "none", cursor: "pointer", padding: 4,
+            }} aria-label="Close">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={palette.creamMute} strokeWidth="1.5" strokeLinecap="round">
+                <path d="M6 6l12 12M6 18L18 6" />
+              </svg>
+            </button>
           </div>
-        </div>
 
-        {/* Quick selects */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-          <QuickSelect label="Energy" value={energy} options={ENERGY_OPTIONS} onChange={setEnergy} />
-          <QuickSelect label="Knee Comfort" value={kneeComfort} options={KNEE_COMFORT_OPTIONS} onChange={setKneeComfort} />
-          <QuickSelect label="Mood After" value={mood} options={MOOD_OPTIONS} onChange={setMood} />
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 6, display: "block" }}>Sauna</label>
+          {/* Headline stats */}
+          <div style={{
+            display: "flex", gap: 24, marginBottom: 8, paddingBottom: 24,
+            borderBottom: `1px solid ${palette.creamFaint}`,
+          }}>
+            <div>
+              <div style={{ ...type.caps, color: palette.creamMute, fontSize: 9 }}>Day</div>
+              <div style={{ ...type.numeral, color: palette.cream, fontSize: 30, marginTop: 4 }}>{cfg.short}</div>
+            </div>
+            <div>
+              <div style={{ ...type.caps, color: palette.creamMute, fontSize: 9 }}>Time</div>
+              <div style={{ ...type.numeral, color: palette.cream, fontSize: 30, marginTop: 4, fontVariantNumeric: "lining-nums tabular-nums" }}>
+                {elapsed}<span style={{ ...type.caps, fontSize: 11, color: palette.creamMute, marginLeft: 4 }}>min</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ ...type.caps, color: palette.creamMute, fontSize: 9 }}>Sets</div>
+              <div style={{ ...type.numeral, color: palette.cream, fontSize: 30, marginTop: 4, fontVariantNumeric: "lining-nums tabular-nums" }}>
+                {setsCompleted}<span style={{ color: palette.creamFaint }}>/{totalSets}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Difficulty — flame chips */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "16px 0", borderBottom: `1px solid ${palette.creamFaint}`,
+          }}>
+            <div style={{ ...type.caps, color: palette.creamMute }}>Difficulty</div>
+            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+              {[1, 2, 3, 4, 5].map(d => (
+                <button key={d} onClick={() => setDifficulty(d)} style={{
+                  background: "none", border: "none", cursor: "pointer", padding: 4,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                }}>
+                  <Glyph name="flame" size={d === difficulty ? 18 : 14}
+                    color={d <= difficulty ? way.dominant : palette.creamFaint} />
+                  {d === difficulty && (
+                    <span style={{ ...type.caps, color: way.dominant, fontSize: 9 }}>
+                      {DIFFICULTY_NAMES[d]}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Spec sheet selectors */}
+          <SpecRow label="Energy">
+            <InlineChoice options={ENERGY_OPTIONS} value={energy} onChange={setEnergy} accent={way.dominant} />
+          </SpecRow>
+          <SpecRow label="Knee">
+            <InlineChoice options={KNEE_COMFORT_OPTIONS} value={kneeComfort} onChange={setKneeComfort} accent={way.dominant} />
+          </SpecRow>
+          <SpecRow label="Mood">
+            <InlineChoice options={MOOD_OPTIONS} value={mood} onChange={setMood} accent={way.dominant} />
+          </SpecRow>
+
+          {/* Sauna toggle */}
+          <div style={{
+            padding: "16px 0", borderTop: `1px solid ${palette.creamFaint}`,
+            display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16,
+          }}>
+            <div style={{ ...type.caps, color: palette.creamMute }}>Recovery</div>
             <button onClick={() => setSauna(!sauna)} style={{
-              width: "100%", padding: "10px", borderRadius: 8,
-              border: `1px solid ${sauna ? "rgba(234,179,8,0.3)" : "rgba(255,255,255,0.08)"}`,
-              background: sauna ? "rgba(234,179,8,0.1)" : "rgba(255,255,255,0.03)",
-              color: sauna ? "#EAB308" : "rgba(255,255,255,0.4)",
-              fontSize: 13, fontWeight: 600, cursor: "pointer",
+              background: "none", border: "none", cursor: "pointer", padding: 0,
+              fontFamily: '"Fraunces", serif', fontSize: 16, fontWeight: sauna ? 600 : 500,
+              fontVariationSettings: '"opsz" 64', fontStyle: sauna ? "normal" : "italic",
+              color: sauna ? palette.sand : palette.creamMute,
+              borderBottom: sauna ? `1.5px solid ${palette.sand}` : `1.5px solid transparent`,
             }}>
-              {sauna ? "\u{1F9D6} Yes" : "No"}
+              {sauna ? "+ sauna recovery" : "no sauna"}
+            </button>
+          </div>
+
+          {/* Notes */}
+          <div style={{ padding: "20px 0 8px", borderTop: `1px solid ${palette.creamFaint}` }}>
+            <div style={{ ...type.caps, color: palette.creamMute, marginBottom: 8 }}>Notes</div>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="PRs, form cues, adjustments…"
+              rows={2}
+              className="gh-input"
+              style={{ resize: "none", fontStyle: notes ? "normal" : "italic", fontWeight: 400, fontSize: 16 }}
+            />
+          </div>
+
+          {/* Submit */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 28 }}>
+            <button
+              onClick={() => onComplete({ difficulty, energy, kneeComfort, mood, notes, sauna })}
+              className="gh-stamp is-filled"
+              style={{ padding: "14px 28px", fontSize: 12 }}
+            >
+              Log Session
             </button>
           </div>
         </div>
-
-        {/* Notes */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 6, display: "block" }}>Notes (optional)</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)}
-            placeholder="PRs, form cues, adjustments..." rows={2} style={{
-              width: "100%", padding: "12px", background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8,
-              color: "#fff", fontSize: 16, outline: "none", resize: "none",
-              fontFamily: "inherit", boxSizing: "border-box",
-            }} />
-        </div>
-
-        <button onClick={() => onComplete({ difficulty, energy, kneeComfort, mood, notes, sauna })} style={{
-          width: "100%", padding: "16px 0", background: dayColor,
-          color: "#fff", border: "none", borderRadius: 12, fontSize: 16,
-          fontWeight: 700, cursor: "pointer",
-        }}>
-          Save Workout {"\u2713"}
-        </button>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useWorkout } from "./hooks/useWorkout.js";
 import { getDayConfig } from "./lib/utils.js";
+import { palette, dawnGradient, type } from "./lib/theme.js";
 import Toast from "./components/Toast.jsx";
 import SetupScreen from "./components/SetupScreen.jsx";
 import Dashboard from "./components/Dashboard.jsx";
@@ -7,16 +8,23 @@ import WorkoutScreen from "./components/WorkoutScreen.jsx";
 import HistoryScreen from "./components/HistoryScreen.jsx";
 import SettingsScreen from "./components/SettingsScreen.jsx";
 import CompletionModal from "./components/CompletionModal.jsx";
+import Horizon from "./components/Horizon.jsx";
 
 export default function App() {
   const { state, dispatch, startWorkout, logSet, quickLogSet, finishWorkout } = useWorkout();
 
   if (state.screen === "loading") {
     return (
-      <div style={{ minHeight: "100vh", background: "#0B1120", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center", color: "#fff" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>{"\u{1F3CB}\u{FE0F}"}</div>
-          <div style={{ fontSize: 16, fontWeight: 600, opacity: 0.5 }}>Loading...</div>
+      <div style={{ minHeight: "100vh", background: dawnGradient, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ textAlign: "center", maxWidth: 320, animation: "ghFadeIn 0.6s ease both" }}>
+          <Horizon
+            height={48}
+            suns={[{ x: 0.5, y: -0.25, color: palette.horizon, size: 1.4 }]}
+            arc
+            style={{ marginBottom: 24 }}
+          />
+          <div style={{ ...type.caps, color: palette.creamMute }}>Golden Hour</div>
+          <div style={{ ...type.title, color: palette.cream, marginTop: 6 }}>Loading the morning…</div>
         </div>
       </div>
     );

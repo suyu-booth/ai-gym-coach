@@ -1,18 +1,21 @@
 // ─── DAY CONFIGURATION ─────────────────────────────────────
 // Keyed by JS getDay(): Sunday=0, Monday=1, etc.
+// Glyph names map into <Glyph name=...> (see components/Glyph.jsx).
+
+import { palette } from "./theme.js";
 
 export const DAY_CONFIG = {
-  1: { key: "monday", label: "Monday - Upper Push", color: "#3B82F6", colorLight: "#1e3a5f", icon: "\u{1F4AA}" },
-  2: { key: "tuesday", label: "Tuesday - Lower Body", color: "#22C55E", colorLight: "#1a3d2a", icon: "\u{1F9B5}" },
-  4: { key: "thursday", label: "Thursday - Upper Pull", color: "#A855F7", colorLight: "#3b1d5e", icon: "\u{1F3CB}\u{FE0F}" },
-  0: { key: "sunday", label: "Sunday - Bachata", color: "#EC4899", colorLight: "#4a1a30", icon: "\u{1F483}" },
+  1: { key: "monday",   label: "Monday - Upper Push",   short: "Upper Push", color: palette.horizon, colorLight: "rgba(231,111,81,0.18)",  glyph: "sun-rising" },
+  2: { key: "tuesday",  label: "Tuesday - Lower Body",  short: "Lower Body", color: palette.sand,    colorLight: "rgba(233,196,106,0.20)", glyph: "sun-noon" },
+  4: { key: "thursday", label: "Thursday - Upper Pull", short: "Upper Pull", color: palette.coral,   colorLight: "rgba(244,162,97,0.18)",  glyph: "sun-arc" },
+  0: { key: "sunday",   label: "Sunday - Bachata",      short: "Bachata",    color: "#b07a8c",       colorLight: "rgba(176,122,140,0.18)", glyph: "sun-set" },
 };
 
 // ─── EXERCISE LIBRARY ──────────────────────────────────────
 
 export const EXERCISES = {
   monday: {
-    warmup: ["Arm circles: 15 forward, 15 backward", "Band pull-aparts: 2 \u00D7 12", "Cat-cow stretches: 10 reps"],
+    warmup: ["Arm circles: 15 forward, 15 backward", "Band pull-aparts: 2 × 12", "Cat-cow stretches: 10 reps"],
     exercises: [
       { id: "incline-db-press", name: "Incline DB Press", sets: 3, reps: "10-12", defaultWeight: 47.5, unit: "lb DBs", notes: "Control descent", increment: 2.5 },
       { id: "seated-shoulder-press", name: "Seated Shoulder Press", sets: 4, reps: "10", defaultWeight: 45, unit: "lb DBs", notes: "Key lift for dance", increment: 2.5 },
@@ -26,7 +29,7 @@ export const EXERCISES = {
     hasSauna: false,
   },
   tuesday: {
-    warmup: ["Glute bridges: 2 \u00D7 10", "Leg swings: 10 each leg", "Foam roll quads/IT band: 2 min"],
+    warmup: ["Glute bridges: 2 × 10", "Leg swings: 10 each leg", "Foam roll quads/IT band: 2 min"],
     exercises: [
       { id: "leg-press", name: "Leg Press (high foot)", sets: 3, reps: "12", defaultWeight: 195, unit: "lbs", notes: "Reduces knee shear", increment: 10 },
       { id: "romanian-deadlift", name: "Romanian Deadlift", sets: 3, reps: "10", defaultWeight: 75, unit: "lbs", notes: "Hamstring focus", increment: 5 },
@@ -39,7 +42,7 @@ export const EXERCISES = {
     hasSauna: true,
   },
   thursday: {
-    warmup: ["Band pull-aparts: 2 \u00D7 15", "Shoulder dislocates with PVC: 10 reps", "Thoracic rotations: 8 each side"],
+    warmup: ["Band pull-aparts: 2 × 15", "Shoulder dislocates with PVC: 10 reps", "Thoracic rotations: 8 each side"],
     exercises: [
       { id: "lat-pulldown", name: "Lat Pulldown", sets: 3, reps: "10-12", defaultWeight: 100, unit: "lbs", notes: "Full stretch at top", increment: 5 },
       { id: "seated-cable-row", name: "Seated Cable Row", sets: 3, reps: "12", defaultWeight: 100, unit: "lbs", notes: "Squeeze shoulder blades", increment: 5 },
@@ -54,12 +57,28 @@ export const EXERCISES = {
 };
 
 // ─── DISPLAY CONSTANTS ─────────────────────────────────────
+// Notion-bound option values (with emojis) MUST stay intact for the API.
+// `display` is the label rendered in the editorial UI.
 
 export const DIFFICULTY_LABELS = ["", "Easy \u{1F60E}", "Moderate \u{1F642}", "Good \u{1F4AA}", "Hard \u{1F624}", "Max \u{1F525}"];
-export const DIFFICULTY_COLORS = ["", "#22C55E", "#84CC16", "#EAB308", "#F97316", "#EF4444"];
-export const ENERGY_OPTIONS = ["\u26A1 High", "\u{1F610} Medium", "\u{1F634} Low"];
-export const KNEE_COMFORT_OPTIONS = ["\u2705 No pain", "\u26A0\uFE0F Mild discomfort", "\u{1F6D1} Pain"];
-export const MOOD_OPTIONS = ["\u{1F60A} Great", "\u{1F60C} Good", "\u{1F610} Neutral", "\u{1F613} Tired"];
+export const DIFFICULTY_NAMES = ["", "Easy", "Moderate", "Good", "Hard", "Max"];
+
+export const ENERGY_OPTIONS = [
+  { value: "⚡ High",   display: "High" },
+  { value: "\u{1F610} Medium", display: "Medium" },
+  { value: "\u{1F634} Low",  display: "Low" },
+];
+export const KNEE_COMFORT_OPTIONS = [
+  { value: "✅ No pain", display: "No pain" },
+  { value: "⚠️ Mild discomfort", display: "Mild" },
+  { value: "\u{1F6D1} Pain", display: "Pain" },
+];
+export const MOOD_OPTIONS = [
+  { value: "\u{1F60A} Great", display: "Great" },
+  { value: "\u{1F60C} Good",  display: "Good" },
+  { value: "\u{1F610} Neutral", display: "Neutral" },
+  { value: "\u{1F613} Tired", display: "Tired" },
+];
 
 export const DEFAULT_PROFILE = {
   name: "",

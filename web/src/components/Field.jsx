@@ -1,21 +1,23 @@
-export default function Field({ label, value, onChange, placeholder, multiline, type = "text" }) {
-  const style = {
-    width: "100%", background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10,
-    padding: "12px 14px", color: "#fff", fontSize: 16, outline: "none",
-    fontFamily: "inherit", resize: "none", boxSizing: "border-box",
+import { palette, type } from "../lib/theme.js";
+
+export default function Field({ label, value, onChange, placeholder, multiline, type: inputType = "text" }) {
+  const props = {
+    value,
+    onChange: e => onChange(e.target.value),
+    placeholder,
+    className: "gh-input",
+    style: {
+      fontSize: 18, padding: "10px 0",
+      ...(inputType === "number" ? { fontVariantNumeric: "lining-nums tabular-nums" } : {}),
+    },
   };
 
   return (
     <div>
-      <label style={{
-        display: "block", fontSize: 12, fontWeight: 600,
-        color: "rgba(255,255,255,0.4)", marginBottom: 6,
-        textTransform: "uppercase", letterSpacing: 0.8,
-      }}>{label}</label>
+      <label style={{ ...type.caps, color: palette.creamMute, display: "block", marginBottom: 4 }}>{label}</label>
       {multiline
-        ? <textarea rows={2} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={style} />
-        : <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={style} />}
+        ? <textarea rows={2} {...props} style={{ ...props.style, resize: "none" }} />
+        : <input type={inputType} {...props} />}
     </div>
   );
 }

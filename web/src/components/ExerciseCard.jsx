@@ -1,61 +1,98 @@
 import { getWeightTrend } from "../lib/progressive.js";
+import { palette, type, dayway } from "../lib/theme.js";
+import Glyph from "./Glyph.jsx";
 import SetRow from "./SetRow.jsx";
 
 export default function ExerciseCard({ exercise, index, expanded, dayKey, history, dayColor, dispatch, onLog, onQuickLog }) {
   const trend = getWeightTrend(exercise, history, dayKey);
   const allComplete = exercise.sets.every(s => s.completed);
   const someComplete = exercise.sets.some(s => s.completed);
+  const way = dayway(dayKey);
+
+  const numLabel = String(index + 1).padStart(2, "0");
 
   return (
-    <div style={{
-      background: allComplete ? "rgba(34,197,94,0.04)" : "rgba(255,255,255,0.03)",
-      borderRadius: 12,
-      border: `1px solid ${allComplete ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.06)"}`,
-      marginBottom: 8, overflow: "hidden",
-    }}>
+    <div style={{ borderTop: `1px solid ${palette.creamFaint}` }}>
       <div onClick={() => dispatch({ type: "EXPAND_EXERCISE", payload: index })} style={{
-        padding: "14px 16px", cursor: "pointer",
-        display: "flex", alignItems: "center", gap: 12,
+        padding: "18px 0", display: "flex", alignItems: "center", gap: 16, cursor: "pointer",
       }}>
         <div style={{
-          width: 28, height: 28, borderRadius: 7,
-          background: allComplete ? "#22C55E" : someComplete ? dayColor + "33" : "rgba(255,255,255,0.06)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 13, fontWeight: 700,
-          color: allComplete ? "#fff" : dayColor, flexShrink: 0,
-        }}>
-          {allComplete ? "\u2713" : index + 1}
-        </div>
+          fontFamily: '"Fraunces", serif', fontWeight: 600,
+          fontSize: 22, lineHeight: 1, fontVariationSettings: '"opsz" 96',
+          color: allComplete ? palette.sand : someComplete ? way.dominant : palette.creamMute,
+          fontVariantNumeric: "lining-nums tabular-nums",
+          minWidth: 32,
+          opacity: allComplete ? 0.55 : 1,
+        }}>{numLabel}</div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: allComplete ? "rgba(255,255,255,0.5)" : "#fff" }}>{exercise.name}</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>
+          <div style={{
+            fontFamily: '"Fraunces", serif', fontSize: 17, fontWeight: 600,
+            color: allComplete ? palette.creamMute : palette.cream,
+            fontVariationSettings: '"opsz" 64',
+            textDecoration: allComplete ? "line-through" : "none",
+            textDecorationColor: palette.creamFaint,
+            textDecorationThickness: "1px",
+          }}>
+            {exercise.name}
+          </div>
+          <div style={{ ...type.caps, color: palette.creamMute, fontSize: 10, marginTop: 4 }}>
             {exercise.isBodyweight
-              ? `${exercise.sets.length} \u00D7 ${exercise.reps}`
-              : `${exercise.targetWeight} ${exercise.unit} \u00B7 ${exercise.sets.length} \u00D7 ${exercise.reps}`}
+              ? <>Bodyweight · {exercise.sets.length} × {exercise.reps}</>
+              : <>{exercise.targetWeight}<span style={{ letterSpacing: 0, marginLeft: 2 }}>{" "}{exercise.unit}</span> · {exercise.sets.length} × {exercise.reps}</>}
           </div>
         </div>
+
+        {/* Set segments */}
         <div style={{ display: "flex", gap: 3 }}>
           {exercise.sets.map((s, si) => (
-            <div key={si} style={{ width: 8, height: 8, borderRadius: 2, background: s.completed ? "#22C55E" : "rgba(255,255,255,0.1)" }} />
+            <div key={si} style={{
+              width: 14, height: 3,
+              background: s.completed ? palette.sand : palette.creamFaint,
+            }} />
           ))}
         </div>
-        <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>{"\u25BC"}</span>
+
+        <div style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          transition: "transform 0.2s ease", transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+          marginLeft: 4,
+        }}>
+          <Glyph name="chevron-down" size={14} color={palette.creamMute} />
+        </div>
       </div>
 
       {expanded && (
-        <div style={{ padding: "0 16px 16px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+        <div style={{ padding: "0 0 22px", animation: "ghFadeIn 0.25s ease both" }}>
+          {/* Trend caption */}
           {trend.length > 0 && !exercise.isBodyweight && (
-            <div style={{ padding: "10px 0 8px", display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Recent:</span>
+            <div style={{
+              padding: "0 0 12px", display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap",
+              fontFamily: '"Fraunces", serif', fontVariationSettings: '"opsz" 48',
+              fontVariantNumeric: "lining-nums tabular-nums",
+            }}>
+              <span style={{ ...type.caps, color: palette.creamMute, fontSize: 9 }}>Trend</span>
               {trend.map((t, i) => (
-                <span key={i} style={{ fontSize: 12, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)" }}>{t.avgWeight}</span>
+                <span key={i} style={{ fontSize: 14, color: palette.creamMute, fontWeight: 500 }}>
+                  {t.avgWeight}{i < trend.length - 1 ? " ·" : ""}
+                </span>
               ))}
-              <span style={{ fontSize: 11, color: dayColor, fontWeight: 600 }}>{"\u2192"} {exercise.targetWeight}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: way.dominant }}>
+                <Glyph name="arrow-right" size={12} color={way.dominant} strokeWidth={2} />
+                <span style={{ fontSize: 16, fontWeight: 600 }}>{exercise.targetWeight}</span>
+              </span>
             </div>
           )}
-          {exercise.notes && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontStyle: "italic", marginBottom: 8 }}>{"\u{1F4A1}"} {exercise.notes}</div>}
+          {exercise.notes && (
+            <div style={{
+              ...type.small, color: palette.creamMute, fontStyle: "italic",
+              marginBottom: 12, paddingLeft: 12, borderLeft: `1px solid ${palette.creamFaint}`,
+            }}>
+              {exercise.notes}
+            </div>
+          )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {exercise.sets.map((set, si) => (
               <SetRow key={si} set={set} setIdx={si} exerciseIdx={index} exercise={exercise}
                 onLog={onLog} onQuickLog={onQuickLog} dayColor={dayColor} />
