@@ -5,6 +5,7 @@ from __future__ import annotations
 from gym_coach.exercises import EXERCISES
 from gym_coach.models import ExerciseLog, SetLog, WorkoutSession
 from gym_coach.notion_client import NotionClient
+from gym_coach.notion_schema import PROPS, TRACK
 
 
 # ─── Set value formatting ─────────────────────────────────────
@@ -119,14 +120,14 @@ def _exercise_row_properties(
 ) -> dict:
     """Build Notion properties for a single exercise row."""
     props: dict = {
-        "Exercise": _title_prop(exercise.name),
-        "Suggested": _rich_text_prop(suggested),
-        "Sets x Reps": _rich_text_prop(sets_x_reps),
-        "Notes": _rich_text_prop(exercise.notes),
+        TRACK.EXERCISE: _title_prop(exercise.name),
+        TRACK.SUGGESTED: _rich_text_prop(suggested),
+        TRACK.SETS_X_REPS: _rich_text_prop(sets_x_reps),
+        TRACK.NOTES: _rich_text_prop(exercise.notes),
     }
     # Set 1-4 columns
     for i, s in enumerate(exercise.sets[:4], start=1):
-        props[f"Set {i}"] = _rich_text_prop(
+        props[TRACK.SET_COLS[i - 1]] = _rich_text_prop(
             format_set_value(s, exercise.is_bodyweight)
         )
     return props
@@ -161,16 +162,16 @@ class NotionWriter:
 
         # ── Page properties ──
         properties: dict = {
-            "Workout Name": _title_prop(
+            PROPS.WORKOUT_NAME: _title_prop(
                 f"Week {self._get_week_label(session)} {self._get_day_label(session)}"
             ),
-            "Date": _date_prop(session.date),
+            PROPS.DATE: _date_prop(session.date),
         }
 
         # Add Day Type if available
         day_label = self._get_day_label(session)
         if day_label:
-            properties["Day Type"] = _select_prop(day_label)
+            properties[PROPS.DAY_TYPE] = _select_prop(day_label)
 
         # ── Child blocks ──
         children: list[dict] = []
@@ -230,14 +231,14 @@ class NotionWriter:
         """
         # Define the database schema
         db_properties: dict = {
-            "Exercise": {"title": {}},
-            "Suggested": {"rich_text": {}},
-            "Sets x Reps": {"rich_text": {}},
-            "Set 1": {"rich_text": {}},
-            "Set 2": {"rich_text": {}},
-            "Set 3": {"rich_text": {}},
-            "Set 4": {"rich_text": {}},
-            "Notes": {"rich_text": {}},
+            TRACK.EXERCISE: {"title": {}},
+            TRACK.SUGGESTED: {"rich_text": {}},
+            TRACK.SETS_X_REPS: {"rich_text": {}},
+            TRACK.SET_1: {"rich_text": {}},
+            TRACK.SET_2: {"rich_text": {}},
+            TRACK.SET_3: {"rich_text": {}},
+            TRACK.SET_4: {"rich_text": {}},
+            TRACK.NOTES: {"rich_text": {}},
         }
 
         result = self.client.create_database(
@@ -274,18 +275,18 @@ class NotionWriter:
         properties: dict = {}
 
         if session.duration is not None:
-            properties["Duration"] = _number_prop(session.duration)
+            properties[PROPS.DURATION] = _number_prop(session.duration)
         if session.difficulty is not None:
-            properties["Difficulty"] = _select_prop(str(session.difficulty))
+            properties[PROPS.DIFFICULTY] = _select_prop(str(session.difficulty))
         if session.energy:
-            properties["Energy"] = _select_prop(session.energy)
+            properties[PROPS.ENERGY] = _select_prop(session.energy)
         if session.knee_comfort:
-            properties["Knee Comfort"] = _select_prop(session.knee_comfort)
+            properties[PROPS.KNEE_COMFORT] = _select_prop(session.knee_comfort)
         if session.mood:
-            properties["Mood"] = _select_prop(session.mood)
+            properties[PROPS.MOOD] = _select_prop(session.mood)
         if session.notes:
-            properties["Workout Notes"] = _rich_text_prop(session.notes)
-        properties["Sauna"] = _checkbox_prop(session.sauna)
+            properties[PROPS.WORKOUT_NOTES] = _rich_text_prop(session.notes)
+        properties[PROPS.SAUNA] = _checkbox_prop(session.sauna)
 
         if properties:
             self.client.update_page(page_id, properties)
@@ -307,7 +308,7 @@ class NotionWriter:
 
         row_map: dict[str, str] = {}
         for row in rows:
-            name = _get_title(row.get("properties", {}), "Exercise")
+            name = _get_title(row.get("properties", {}), TRACK.EXERCISE)
             if name:
                 row_map[name.lower()] = row["id"]
 
@@ -322,7 +323,7 @@ class NotionWriter:
         """Update Set 1-4 columns for a specific exercise row."""
         props: dict = {}
         for i, s in enumerate(exercise.sets[:4], start=1):
-            props[f"Set {i}"] = _rich_text_prop(
+            props[TRACK.SET_COLS[i - 1]] = _rich_text_prop(
                 format_set_value(s, exercise.is_bodyweight)
             )
         self.client.update_page(row_page_id, props)

@@ -4,6 +4,7 @@
  */
 
 import { Client } from "@notionhq/client";
+import { DAY_LABELS, DAY_TYPE_TO_KEY } from "./_schema.js";
 
 // ─── Notion client singleton ──────────────────────────────
 
@@ -205,28 +206,14 @@ export function toggleBlock(title: string, children: any[]) {
   };
 }
 
-// ─── Day key mapping ───────────────────────────────────────
-
-const DAY_TYPE_MAP: Record<string, string> = {
-  "Monday - Upper Push": "monday",
-  "Tuesday - Lower Body": "tuesday",
-  "Thursday - Upper Pull": "thursday",
-  "Sunday - Bachata": "sunday",
-};
-
-const DAY_LABELS: Record<string, string> = {
-  monday: "Monday - Upper Push",
-  tuesday: "Tuesday - Lower Body",
-  thursday: "Thursday - Upper Pull",
-  sunday: "Sunday - Bachata",
-};
+// ─── Day key mapping (constants live in _schema.ts) ───────
 
 export function dayTypeToKey(dayType: string): string {
-  return DAY_TYPE_MAP[dayType] || dayType.toLowerCase().split(" ")[0];
+  return DAY_TYPE_TO_KEY[dayType] || dayType.toLowerCase().split(" ")[0];
 }
 
 export function dayKeyToLabel(dayKey: string): string {
-  return DAY_LABELS[dayKey] || dayKey;
+  return (DAY_LABELS as Record<string, string>)[dayKey] || dayKey;
 }
 
 // ─── Exercise name → ID mapping ─────────────────────────────

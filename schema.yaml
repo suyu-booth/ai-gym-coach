@@ -1,0 +1,90 @@
+# Notion Workout Log schema — single source of truth.
+# Edit here, then run:  python scripts/gen_schema.py
+# Generates:
+#   src/gym_coach/notion_schema.py
+#   web/api/_schema.ts
+
+workout_log:
+  database_id: "30cfcd91-d09f-8170-bb72-e3294e05bb40"
+  properties:
+    workout_name:
+      notion_name: "Workout Name"
+      type: title
+    date:
+      notion_name: "Date"
+      type: date
+    day_type:
+      notion_name: "Day Type"
+      type: select
+      options:
+        - "Monday - Upper Push"
+        - "Tuesday - Lower Body"
+        - "Thursday - Upper Pull"
+    duration:
+      notion_name: "Duration"
+      type: number
+    difficulty:
+      notion_name: "Difficulty"
+      type: select
+      options: ["1", "2", "3", "4", "5"]
+    energy:
+      notion_name: "Energy"
+      type: select
+      options:
+        - "⚡ High"
+        - "😐 Medium"
+        - "😴 Low"
+    knee_comfort:
+      notion_name: "Knee Comfort"
+      type: select
+      options:
+        - "✅ No pain"
+        - "⚠️ Mild discomfort"
+        - "🛑 Pain"
+    mood:
+      notion_name: "Mood"
+      type: select
+      options:
+        - "😊 Great"
+        - "😌 Good"
+        - "😐 Neutral"
+        - "😓 Tired"
+    sauna:
+      notion_name: "Sauna"
+      type: checkbox
+    workout_notes:
+      notion_name: "Workout Notes"
+      type: rich_text
+
+weight_tracking_log:
+  columns:
+    exercise:
+      notion_name: "Exercise"
+      type: title
+    suggested:
+      notion_name: "Suggested"
+      type: rich_text
+    sets_x_reps:
+      notion_name: "Sets x Reps"
+      type: rich_text
+    set_1:
+      notion_name: "Set 1"
+      type: rich_text
+    set_2:
+      notion_name: "Set 2"
+      type: rich_text
+    set_3:
+      notion_name: "Set 3"
+      type: rich_text
+    set_4:
+      notion_name: "Set 4"
+      type: rich_text
+    notes:
+      notion_name: "Notes"
+      type: rich_text
+
+day_labels:
+  monday: "Monday - Upper Push"
+  tuesday: "Tuesday - Lower Body"
+  thursday: "Thursday - Upper Pull"
+  sunday: "Sunday - Bachata"

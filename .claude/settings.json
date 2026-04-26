@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('file_path','').endswith('.py') else 1)\" && pytest tests/ -q 2>&1 | tail -10"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); f=d.get('file_path','').split('/')[-1]; print('Blocked: .env files hold live NOTION_API credentials — edit manually') or sys.exit(2) if f.startswith('.env') else sys.exit(0)\""
+          }
+        ]
+      }
+    ]
+  }
+}
