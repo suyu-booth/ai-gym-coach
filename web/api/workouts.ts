@@ -10,6 +10,7 @@ import {
   getTitle, getRichText, getSelect, getNumber, getCheckbox, getDate,
   parseSetValue, dayTypeToKey, isBodyweightExercise, exerciseNameToId,
 } from "./_notion.js";
+import { PROPS, TRACK, TRACK_SET_COLS } from "./_schema.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -29,10 +30,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const response = await notion.databases.query({
       database_id: DATABASE_ID,
       filter: {
-        property: "Date",
+        property: PROPS.DATE,
         date: { on_or_after: cutoffStr },
       },
-      sorts: [{ property: "Date", direction: "descending" }],
+      sorts: [{ property: PROPS.DATE, direction: "descending" }],
     });
 
     const workouts = [];
@@ -41,16 +42,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!("properties" in page)) continue;
 
       const props = page.properties;
-      const workoutName = getTitle(props, "Workout Name");
-      const date = getDate(props, "Date");
-      const dayType = getSelect(props, "Day Type");
-      const duration = getNumber(props, "Duration");
-      const difficulty = getSelect(props, "Difficulty");
-      const energy = getSelect(props, "Energy");
-      const kneeComfort = getSelect(props, "Knee Comfort");
-      const mood = getSelect(props, "Mood");
-      const sauna = getCheckbox(props, "Sauna");
-      const notes = getRichText(props, "Workout Notes");
+      const workoutName = getTitle(props, PROPS.WORKOUT_NAME);
+      const date = getDate(props, PROPS.DATE);
+      const dayType = getSelect(props, PROPS.DAY_TYPE);
+      const duration = getNumber(props, PROPS.DURATION);
+      const difficulty = getSelect(props, PROPS.DIFFICULTY);
+      const energy = getSelect(props, PROPS.ENERGY);
+      const kneeComfort = getSelect(props, PROPS.KNEE_COMFORT);
+      const mood = getSelect(props, PROPS.MOOD);
+      const sauna = getCheckbox(props, PROPS.SAUNA);
+      const notes = getRichText(props, PROPS.WORKOUT_NOTES);
 
       if (!date || !dayType) continue;
 
@@ -72,10 +73,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           for (const row of rows.results) {
             if (!("properties" in row)) continue;
             const rp = row.properties;
-            const exName = getTitle(rp, "Exercise");
-            const suggested = getRichText(rp, "Suggested");
-            const sxr = getRichText(rp, "Sets x Reps");
-            const exNotes = getRichText(rp, "Notes");
+            const exName = getTitle(rp, TRACK.EXERCISE);
+            const suggested = getRichText(rp, TRACK.SUGGESTED);
+            const sxr = getRichText(rp, TRACK.SETS_X_REPS);
+            const exNotes = getRichText(rp, TRACK.NOTES);
 
             // Determine exercise ID from name
             const exId = exerciseNameToId(exName);
@@ -83,8 +84,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             // Parse sets
             const sets = [];
-            for (let i = 1; i <= 4; i++) {
-              const setVal = getRichText(rp, `Set ${i}`);
+            for (let i = 0; i < 4; i++) {
+              const setVal = getRichText(rp, TRACK_SET_COLS[i]);
               sets.push(parseSetValue(setVal, isBw));
             }
 

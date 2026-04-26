@@ -19,6 +19,7 @@ import {
   heading2Block, heading3Block, bulletBlock, paragraphBlock, toggleBlock,
   dayKeyToLabel, formatSetValue,
 } from "../_notion.js";
+import { PROPS, TRACK, TRACK_SET_COLS } from "../_schema.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -44,9 +45,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── Page properties
     const properties: any = {
-      "Workout Name": titleProp(workoutName),
-      "Date": dateProp(date),
-      "Day Type": selectProp(dayLabel),
+      [PROPS.WORKOUT_NAME]: titleProp(workoutName),
+      [PROPS.DATE]: dateProp(date),
+      [PROPS.DAY_TYPE]: selectProp(dayLabel),
     };
 
     // ── Child blocks (warmup)
@@ -72,14 +73,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       parent: { type: "page_id", page_id: pageId },
       title: [{ type: "text", text: { content: "Weight Tracking Log" } }],
       properties: {
-        "Exercise": { title: {} },
-        "Suggested": { rich_text: {} },
-        "Sets x Reps": { rich_text: {} },
-        "Set 1": { rich_text: {} },
-        "Set 2": { rich_text: {} },
-        "Set 3": { rich_text: {} },
-        "Set 4": { rich_text: {} },
-        "Notes": { rich_text: {} },
+        [TRACK.EXERCISE]: { title: {} },
+        [TRACK.SUGGESTED]: { rich_text: {} },
+        [TRACK.SETS_X_REPS]: { rich_text: {} },
+        [TRACK.SET_1]: { rich_text: {} },
+        [TRACK.SET_2]: { rich_text: {} },
+        [TRACK.SET_3]: { rich_text: {} },
+        [TRACK.SET_4]: { rich_text: {} },
+        [TRACK.NOTES]: { rich_text: {} },
       },
     });
 
@@ -100,10 +101,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
       const rowProps: any = {
-        "Exercise": titleProp(ex.name),
-        "Suggested": richTextProp(suggested),
-        "Sets x Reps": richTextProp(setsXReps),
-        "Notes": richTextProp(ex.notes || ""),
+        [TRACK.EXERCISE]: titleProp(ex.name),
+        [TRACK.SUGGESTED]: richTextProp(suggested),
+        [TRACK.SETS_X_REPS]: richTextProp(setsXReps),
+        [TRACK.NOTES]: richTextProp(ex.notes || ""),
       };
 
       // Pre-fill any completed sets
@@ -111,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         for (let i = 0; i < Math.min(ex.sets.length, 4); i++) {
           const s = ex.sets[i];
           if (s.completed) {
-            rowProps[`Set ${i + 1}`] = richTextProp(
+            rowProps[TRACK_SET_COLS[i]] = richTextProp(
               formatSetValue(s.weight, s.reps, ex.isBodyweight)
             );
           }
