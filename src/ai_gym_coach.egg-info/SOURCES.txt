@@ -18,3 +18,4 @@ src/gym_coach/planner.py
 src/gym_coach/progressive_overload.py
 src/gym_coach/scheduler.py
 tests/test_progressive_overload.py
+tests/test_set_values.py
