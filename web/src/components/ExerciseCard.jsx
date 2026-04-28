@@ -4,7 +4,7 @@ import { palette, type, dayway } from "../lib/theme.js";
 import Glyph from "./Glyph.jsx";
 import SetRow from "./SetRow.jsx";
 
-export default function ExerciseCard({ exercise, index, expanded, dayKey, history, dayColor, dispatch, onLog, onQuickLog, onNoteChange }) {
+export default function ExerciseCard({ exercise, index, expanded, dayKey, history, dayColor, dispatch, onLog, onNoteChange }) {
   const [noteOpen, setNoteOpen] = useState(false);
   const userNote = exercise.userNote ?? "";
   const trend = getWeightTrend(exercise, history, dayKey);
@@ -98,7 +98,7 @@ export default function ExerciseCard({ exercise, index, expanded, dayKey, histor
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {exercise.sets.map((set, si) => (
               <SetRow key={si} set={set} setIdx={si} exerciseIdx={index} exercise={exercise}
-                onLog={onLog} onQuickLog={onQuickLog} dayColor={dayColor} />
+                onLog={onLog} dayColor={dayColor} />
             ))}
           </div>
 

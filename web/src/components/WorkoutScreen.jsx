@@ -7,7 +7,7 @@ import RestTimerOverlay from "./RestTimerOverlay.jsx";
 import Glyph from "./Glyph.jsx";
 import Horizon from "./Horizon.jsx";
 
-export default function WorkoutScreen({ state, dispatch, logSet, quickLogSet, updateExerciseNote }) {
+export default function WorkoutScreen({ state, dispatch, logSet, updateExerciseNote }) {
   const { activeWorkout, expandedExercise, workoutHistory, restEndTime } = state;
   if (!activeWorkout) return null;
 
@@ -154,7 +154,7 @@ export default function WorkoutScreen({ state, dispatch, logSet, quickLogSet, up
               expanded={expandedExercise === ei}
               dayKey={activeWorkout.dayKey} history={workoutHistory}
               dayColor={cfg.color} dispatch={dispatch}
-              onLog={logSet} onQuickLog={quickLogSet}
+              onLog={logSet}
               onNoteChange={updateExerciseNote} />
           ))}
         </div>
