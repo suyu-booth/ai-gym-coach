@@ -4,7 +4,7 @@ import { palette, dawnGradient, type, dayway } from "../lib/theme.js";
 import Glyph from "./Glyph.jsx";
 import Horizon from "./Horizon.jsx";
 
-const allDays = ["monday", "tuesday", "thursday"];
+const allDays = ["tuesday", "wednesday", "friday"];
 
 function fmtDateLine(d) {
   return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase();
@@ -12,7 +12,7 @@ function fmtDateLine(d) {
 
 function dayNumeral(dayKey) {
   // Sequence position in the user's week. Used as the editorial hero numeral.
-  return { monday: "01", tuesday: "02", thursday: "03", sunday: "04" }[dayKey] || "01";
+  return { tuesday: "01", wednesday: "02", friday: "03", sunday: "04" }[dayKey] || "01";
 }
 
 export default function Dashboard({ state, dispatch, startWorkout }) {
@@ -38,7 +38,7 @@ export default function Dashboard({ state, dispatch, startWorkout }) {
     const isToday = dk === todayKey;
     const dateForDay = (() => {
       const dt = new Date();
-      const target = { monday: 1, tuesday: 2, thursday: 4 }[dk];
+      const target = { tuesday: 2, wednesday: 3, friday: 5 }[dk];
       const offset = (target - dt.getDay() + 7) % 7;
       const cand = new Date(dt); cand.setDate(dt.getDate() + offset - (offset > 3 && dt.getDay() > target ? 7 : 0));
       // Simpler: just show the date for that day this week.
@@ -52,7 +52,7 @@ export default function Dashboard({ state, dispatch, startWorkout }) {
       color: done ? way.dominant : isToday ? way.dominant : palette.creamFaint,
       intensity: done ? 1 : isToday ? 0.85 : 0.45,
       size: done ? 1.15 : 1,
-      label: (dk === "monday" ? "Mon" : dk === "tuesday" ? "Tue" : "Thu") + " " + dateForDay,
+      label: (dk === "tuesday" ? "Tue" : dk === "wednesday" ? "Wed" : "Fri") + " " + dateForDay,
     };
   });
 
@@ -130,7 +130,16 @@ export default function Dashboard({ state, dispatch, startWorkout }) {
               <div style={{ ...type.caps, color: palette.sand }}>Today · Complete</div>
               <div style={{ ...type.title, color: palette.cream, marginTop: 6 }}>The morning's done.</div>
               <div style={{ ...type.small, color: palette.creamMute, marginTop: 8 }}>Rest, hydrate, recover.</div>
-              <div style={{ height: 1, background: palette.creamFaint, margin: "18px 0 0" }} />
+              <div style={{ height: 1, background: palette.creamFaint, margin: "18px 0 14px" }} />
+              {!state.saunaEndTime && (
+                <button
+                  onClick={() => dispatch({ type: "START_SAUNA" })}
+                  className="gh-link"
+                  style={{ fontSize: 13, color: palette.sand }}
+                >
+                  Start sauna 10:00 →
+                </button>
+              )}
             </section>
           )}
 
@@ -138,7 +147,7 @@ export default function Dashboard({ state, dispatch, startWorkout }) {
             <section style={{ marginBottom: 40 }}>
               <div style={{ ...type.caps, color: palette.creamMute }}>Today · Rest Day</div>
               <div style={{ ...type.title, color: palette.cream, marginTop: 6 }}>Off the clock.</div>
-              <div style={{ ...type.small, color: palette.creamMute, marginTop: 8 }}>Next session: Monday.</div>
+              <div style={{ ...type.small, color: palette.creamMute, marginTop: 8 }}>Next session: Tuesday.</div>
               <div style={{ height: 1, background: palette.creamFaint, margin: "18px 0 0" }} />
             </section>
           )}
@@ -155,6 +164,14 @@ export default function Dashboard({ state, dispatch, startWorkout }) {
               </span>
             </div>
             <Horizon height={72} suns={weekSuns} arc />
+            {completedThisWeek >= 1 && (
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                <button onClick={() => dispatch({ type: "SET_SCREEN", payload: "weeklySummary" })}
+                  className="gh-link" style={{ fontSize: 13, color: palette.coral }}>
+                  View summary →
+                </button>
+              </div>
+            )}
           </section>
 
           {/* Quick start — three sky tiles */}
@@ -183,7 +200,7 @@ export default function Dashboard({ state, dispatch, startWorkout }) {
                     </div>
                     <div style={{ height: 1, background: palette.creamFaint, marginBottom: 8 }} />
                     <div style={{ ...type.caps, color: palette.creamMute, fontSize: 9 }}>
-                      {dk === "monday" ? "Mon" : dk === "tuesday" ? "Tue" : "Thu"}
+                      {dk === "tuesday" ? "Tue" : dk === "wednesday" ? "Wed" : "Fri"}
                     </div>
                     <div style={{
                       fontFamily: '"Fraunces", serif', fontSize: 15, fontWeight: 600,

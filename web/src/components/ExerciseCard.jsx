@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { getWeightTrend } from "../lib/progressive.js";
 import { palette, type, dayway } from "../lib/theme.js";
 import Glyph from "./Glyph.jsx";
 import SetRow from "./SetRow.jsx";
 
-export default function ExerciseCard({ exercise, index, expanded, dayKey, history, dayColor, dispatch, onLog, onQuickLog }) {
+export default function ExerciseCard({ exercise, index, expanded, dayKey, history, dayColor, dispatch, onLog, onQuickLog, onNoteChange }) {
+  const [noteOpen, setNoteOpen] = useState(false);
+  const userNote = exercise.userNote ?? "";
   const trend = getWeightTrend(exercise, history, dayKey);
   const allComplete = exercise.sets.every(s => s.completed);
   const someComplete = exercise.sets.some(s => s.completed);
@@ -98,6 +101,49 @@ export default function ExerciseCard({ exercise, index, expanded, dayKey, histor
                 onLog={onLog} onQuickLog={onQuickLog} dayColor={dayColor} />
             ))}
           </div>
+
+          {/* Mid-workout note */}
+          {onNoteChange && (
+            <div style={{ marginTop: 14 }}>
+              {!noteOpen && !userNote && (
+                <button
+                  onClick={() => setNoteOpen(true)}
+                  className="gh-link"
+                  style={{ fontSize: 12, color: palette.creamMute }}
+                >
+                  + note
+                </button>
+              )}
+              {(noteOpen || userNote) && (
+                <div>
+                  <div style={{ ...type.caps, color: palette.creamMute, fontSize: 9, marginBottom: 6 }}>
+                    Note
+                  </div>
+                  <textarea
+                    autoFocus={noteOpen && !userNote}
+                    value={userNote}
+                    onChange={(e) => onNoteChange(index, e.target.value)}
+                    onBlur={() => { if (!userNote) setNoteOpen(false); }}
+                    placeholder="thoughts, form cues, PRs…"
+                    rows={2}
+                    style={{
+                      width: "100%",
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: `1px solid ${palette.creamFaint}`,
+                      color: palette.cream,
+                      fontFamily: '"Fraunces", serif',
+                      fontVariationSettings: '"opsz" 48',
+                      fontSize: 14,
+                      padding: "6px 0",
+                      resize: "vertical",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

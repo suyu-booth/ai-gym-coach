@@ -32,10 +32,10 @@ export const TRACK_SET_COLS = ["Set 1", "Set 2", "Set 3", "Set 4"] as const;
 
 // ─── Day Type select values ────────────────────────────────
 export const DAY_LABELS = {
-  monday: "Monday - Upper Push",
-  tuesday: "Tuesday - Lower Body",
-  thursday: "Thursday - Upper Pull",
-  sunday: "Sunday - Bachata",
+  tuesday:   "Tuesday - Upper Push",
+  wednesday: "Wednesday - Upper Pull",
+  friday:    "Friday - Legs",
+  sunday:    "Sunday - Bachata",
 } as const;
 
 export const DAY_TYPE_TO_KEY: Record<string, string> = Object.fromEntries(
@@ -43,7 +43,7 @@ export const DAY_TYPE_TO_KEY: Record<string, string> = Object.fromEntries(
 );
 
 // ─── Select value literal union types ─────────────────────
-export type DayTypeValue = "Monday - Upper Push" | "Tuesday - Lower Body" | "Thursday - Upper Pull";
+export type DayTypeValue = "Tuesday - Upper Push" | "Wednesday - Upper Pull" | "Friday - Legs";
 export type DifficultyValue = "1" | "2" | "3" | "4" | "5";
 export type EnergyValue = "⚡ High" | "😐 Medium" | "😴 Low";
 export type KneeComfortValue = "✅ No pain" | "⚠️ Mild discomfort" | "🛑 Pain";

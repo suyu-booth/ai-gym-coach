@@ -20,12 +20,15 @@ export default function SetupScreen({ profile, dispatch }) {
     <div style={{ minHeight: "100vh", background: dawnGradient, color: palette.cream, padding: "32px 22px 60px" }}>
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
         <div style={{ marginBottom: 36 }}>
-          <Horizon
-            height={56}
-            suns={[{ x: 0.5, y: -0.35, color: palette.horizon, size: 1.4 }]}
-            arc
-            style={{ marginBottom: 28 }}
-          />
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
+            <div style={{ width: 280 }}>
+              <Horizon
+                height={56}
+                suns={[{ x: 0.5, y: -0.35, color: palette.horizon, size: 1.4 }]}
+                arc
+              />
+            </div>
+          </div>
           <div style={{ ...type.caps, color: palette.creamMute, textAlign: "center" }}>Golden Hour</div>
           <h1 style={{ ...type.display, color: palette.cream, marginTop: 8, textAlign: "center" }}>
             A morning practice.
@@ -72,7 +75,7 @@ export default function SetupScreen({ profile, dispatch }) {
           <div>
             <div style={{ ...type.caps, color: palette.creamMute, marginBottom: 16 }}>Your Weekly Split</div>
             <div style={{ borderTop: `1px solid ${palette.creamFaint}` }}>
-              {["monday", "tuesday", "thursday"].map(dk => {
+              {["tuesday", "wednesday", "friday"].map(dk => {
                 const cfg = getDayConfig(dk);
                 const way = dayway(dk);
                 return (
@@ -83,7 +86,7 @@ export default function SetupScreen({ profile, dispatch }) {
                     <Glyph name={cfg.glyph} size={20} color={way.dominant} />
                     <div style={{ flex: 1 }}>
                       <div style={{ ...type.caps, color: palette.creamMute, fontSize: 9 }}>
-                        {dk === "monday" ? "Mon" : dk === "tuesday" ? "Tue" : "Thu"}
+                        {dk === "tuesday" ? "Tue" : dk === "wednesday" ? "Wed" : "Fri"}
                       </div>
                       <div style={{
                         fontFamily: '"Fraunces", serif', fontSize: 16, fontWeight: 600,

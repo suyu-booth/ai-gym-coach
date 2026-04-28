@@ -24,48 +24,56 @@ export const PAGE_ID = process.env.NOTION_PAGE_ID || "";
 
 // ─── Exercise library (matches frontend constants.js) ─────
 
+const DANCE_WARMUP = [
+  "Bachata basic step in place (side-to-side): 2 × 30s",
+  "Hip circles: 15 each direction",
+  "Shoulder rolls and arm swings: 10 each direction",
+  "Body rolls (hip-to-shoulder wave): 10 reps",
+];
+
 const EXERCISES: Record<string, any> = {
-  monday: {
-    warmup: ["Arm circles: 15 forward, 15 backward", "Band pull-aparts: 2 \u00D7 12", "Cat-cow stretches: 10 reps"],
+  tuesday: {
+    warmup: DANCE_WARMUP,
     exercises: [
-      { id: "incline-db-press", name: "Incline DB Press", sets: 3, reps: "10-12", defaultWeight: 47.5, unit: "lb DBs", notes: "Control descent", increment: 2.5 },
-      { id: "seated-shoulder-press", name: "Seated Shoulder Press", sets: 4, reps: "10", defaultWeight: 45, unit: "lb DBs", notes: "Key lift for dance", increment: 2.5 },
-      { id: "cable-chest-fly", name: "Cable Chest Fly", sets: 3, reps: "12", defaultWeight: 30, unit: "lbs/side", notes: "Squeeze at center", increment: 5 },
-      { id: "lateral-raises", name: "Lateral Raises", sets: 3, reps: "15", defaultWeight: 12, unit: "lb DBs", notes: "Light weight, strict form", increment: 2.5 },
-      { id: "tricep-pushdowns", name: "Tricep Pushdowns", sets: 3, reps: "12", defaultWeight: 40, unit: "lbs", notes: "", increment: 5 },
-      { id: "plank-hold", name: "Plank Hold", sets: 3, reps: "30-45s", defaultWeight: 0, unit: "bodyweight", notes: "Core stability", increment: 0, isBodyweight: true },
-      { id: "dead-bug", name: "Dead Bug", sets: 3, reps: "10/side", defaultWeight: 0, unit: "bodyweight", notes: "Knee-friendly core", increment: 0, isBodyweight: true },
+      { id: "flat-db-bench-press",            name: "Flat DB Bench Press",                    sets: 4, reps: "8-10",         defaultWeight: 45,  unit: "lb DBs",    notes: "Elbows ~45°, full ROM, controlled eccentric",               increment: 5  },
+      { id: "standing-db-arnold-press",        name: "Standing DB Arnold Press",               sets: 3, reps: "10-12",        defaultWeight: 25,  unit: "lb DBs",    notes: "Stand; brace abs; rotation trains rotator cuff for lifts",   increment: 5  },
+      { id: "pec-deck-machine",                name: "Pec Deck Machine",                       sets: 3, reps: "12-15",        defaultWeight: 70,  unit: "lbs",       notes: "Pause 1s at full squeeze",                                   increment: 5  },
+      { id: "single-arm-cable-lateral-raise",  name: "Single-Arm Cable Lateral Raise",         sets: 2, reps: "12-15/side",   defaultWeight: 10,  unit: "lbs",       notes: "Lead with elbow, no shrug",                                  increment: 5  },
+      { id: "overhead-cable-tricep-extension", name: "Overhead Tricep Extension (cable rope)",  sets: 2, reps: "10-12",        defaultWeight: 40,  unit: "lbs",       notes: "Elbows tucked, full stretch overhead",                       increment: 5  },
+      { id: "calf-raises",                     name: "Standing Calf Raise",                    sets: 4, reps: "12-15",        defaultWeight: 115, unit: "lbs",       notes: "Full stretch at bottom; 1s pause at top",                    increment: 10 },
     ],
-    cooldown: "Shoulder + chest stretches",
+    cooldown: "Cross-body shoulder stretch + doorway pec stretch, 30s × 2 each side",
     hasSauna: false,
   },
-  tuesday: {
-    warmup: ["Glute bridges: 2 \u00D7 10", "Leg swings: 10 each leg", "Foam roll quads/IT band: 2 min"],
+  wednesday: {
+    warmup: DANCE_WARMUP,
     exercises: [
-      { id: "leg-press", name: "Leg Press (high foot)", sets: 3, reps: "12", defaultWeight: 195, unit: "lbs", notes: "Reduces knee shear", increment: 10 },
-      { id: "romanian-deadlift", name: "Romanian Deadlift", sets: 3, reps: "10", defaultWeight: 75, unit: "lbs", notes: "Hamstring focus", increment: 5 },
-      { id: "hip-thrust", name: "Hip Thrust", sets: 3, reps: "12", defaultWeight: 45, unit: "lbs", notes: "Glute strength", increment: 10 },
-      { id: "leg-curl", name: "Leg Curl", sets: 3, reps: "12", defaultWeight: 65, unit: "lbs", notes: "", increment: 5 },
-      { id: "calf-raises", name: "Calf Raises", sets: 3, reps: "15", defaultWeight: 120, unit: "lbs", notes: "", increment: 10 },
-      { id: "hip-abduction", name: "Side-lying Hip Abduction", sets: 2, reps: "15/side", defaultWeight: 0, unit: "bodyweight", notes: "Hip stability", increment: 0, isBodyweight: true },
+      { id: "chest-supported-db-row",    name: "Chest-Supported DB Row",               sets: 3, reps: "8-10",     defaultWeight: 40,  unit: "lb DBs", notes: "Chest on 45° incline bench; elbows back; squeeze 1s; no lumbar cheat", increment: 5  },
+      { id: "neutral-grip-lat-pulldown", name: "Neutral-Grip Lat Pulldown",            sets: 3, reps: "10-12",    defaultWeight: 100, unit: "lbs",    notes: "Elbows to hips; lean back 15°",                                         increment: 5  },
+      { id: "reverse-pec-deck",          name: "Reverse Pec Deck (rear delt machine)", sets: 3, reps: "12-15",    defaultWeight: 50,  unit: "lbs",    notes: "Lead with pinkies; no shrug; posture for Bachata frame",                 increment: 5  },
+      { id: "db-hammer-curl",            name: "DB Hammer Curl (alternating)",         sets: 2, reps: "10-12",    defaultWeight: 25,  unit: "lb DBs", notes: "No swing; pause at top; grip strength for partner connection",          increment: 5  },
+      { id: "pallof-press",              name: "Pallof Press (cable, half-kneeling)",  sets: 2, reps: "12/side",  defaultWeight: 25,  unit: "lbs",    notes: "Anti-rotation; switch sides; brace hard — core of Bachata frame", increment: 5  },
+      { id: "cable-face-pull",           name: "Cable Face Pulls (rope, high)",        sets: 1, reps: "15",       defaultWeight: 35,  unit: "lbs",    notes: "Pull to forehead; elbows high; externally rotate at end",               increment: 5  },
+      { id: "calf-raises",               name: "Standing Calf Raise",                  sets: 4, reps: "12-15",    defaultWeight: 115, unit: "lbs",    notes: "Full stretch at bottom; 1s pause at top",                               increment: 10 },
     ],
-    cooldown: null,
+    cooldown: "Lat + biceps doorway stretch",
     hasSauna: true,
   },
-  thursday: {
-    warmup: ["Band pull-aparts: 2 \u00D7 15", "Shoulder dislocates with PVC: 10 reps", "Thoracic rotations: 8 each side"],
+  friday: {
+    warmup: DANCE_WARMUP,
     exercises: [
-      { id: "lat-pulldown", name: "Lat Pulldown", sets: 3, reps: "10-12", defaultWeight: 100, unit: "lbs", notes: "Full stretch at top", increment: 5 },
-      { id: "seated-cable-row", name: "Seated Cable Row", sets: 3, reps: "12", defaultWeight: 100, unit: "lbs", notes: "Squeeze shoulder blades", increment: 5 },
-      { id: "face-pulls", name: "Face Pulls", sets: 4, reps: "15", defaultWeight: 40, unit: "lbs", notes: "Shoulder health", increment: 5 },
-      { id: "rear-delt-fly", name: "Rear Delt Fly", sets: 3, reps: "15", defaultWeight: 15, unit: "lb DBs", notes: "Posture balance", increment: 2.5 },
-      { id: "db-shrugs", name: "DB Shrugs", sets: 3, reps: "12", defaultWeight: 40, unit: "lb DBs", notes: "Trap development", increment: 5 },
-      { id: "bicep-curls", name: "Bicep Curls", sets: 3, reps: "12", defaultWeight: 25, unit: "lb DBs", notes: "", increment: 2.5 },
+      { id: "leg-press",             name: "Leg Press (high & wide foot)",     sets: 3, reps: "10-12",       defaultWeight: 185, unit: "lbs",       notes: "Stop at 90° knee bend; drive through heels; toes slightly out",                       increment: 10 },
+      { id: "machine-hip-thrust",    name: "Machine Hip Thrust",               sets: 3, reps: "10-12",       defaultWeight: 95,  unit: "lbs",       notes: "Zero knee flexion under load; full lockout; chin tucked. If no machine, use DB on bench.", increment: 10 },
+      { id: "seated-leg-curl",       name: "Seated Leg Curl",                  sets: 3, reps: "10-12",       defaultWeight: 70,  unit: "lbs",       notes: "Hip-flexed = hamstrings pre-stretched; 2s eccentric",                                      increment: 5  },
+      { id: "hip-abduction-machine", name: "Hip Abduction Machine",            sets: 2, reps: "15",          defaultWeight: 90,  unit: "lbs",       notes: "Lean torso slightly forward; biases upper glute med for Bachata footwork",               increment: 5  },
+      { id: "calf-raises",           name: "Standing Calf Raise",              sets: 4, reps: "12-15",       defaultWeight: 115, unit: "lbs",       notes: "Full stretch at bottom; 1s pause at top; gastrocnemius focus",                          increment: 10 },
+      { id: "copenhagen-plank",      name: "Copenhagen Plank (adductor hold)", sets: 1, reps: "20-30s/side", defaultWeight: 0,   unit: "bodyweight", notes: "Top leg on bench; support on elbow; no hip drop; adductors drive Bachata side-step",    increment: 0, isBodyweight: true },
     ],
-    cooldown: null,
+    cooldown: "Pigeon stretch + couch stretch, 45s/side",
     hasSauna: true,
   },
 };
+
 
 export function getExerciseTemplate(dayKey: string) {
   return EXERCISES[dayKey] || null;

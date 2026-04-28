@@ -7,8 +7,8 @@ import RestTimerOverlay from "./RestTimerOverlay.jsx";
 import Glyph from "./Glyph.jsx";
 import Horizon from "./Horizon.jsx";
 
-export default function WorkoutScreen({ state, dispatch, logSet, quickLogSet }) {
-  const { activeWorkout, expandedExercise, workoutHistory, restTimer, restTimeLeft } = state;
+export default function WorkoutScreen({ state, dispatch, logSet, quickLogSet, updateExerciseNote }) {
+  const { activeWorkout, expandedExercise, workoutHistory, restEndTime } = state;
   if (!activeWorkout) return null;
 
   const cfg = getDayConfig(activeWorkout.dayKey);
@@ -43,7 +43,7 @@ export default function WorkoutScreen({ state, dispatch, logSet, quickLogSet }) 
       background: bg,
       transition: "background 1.6s cubic-bezier(0.4, 0, 0.2, 1)",
       color: palette.cream,
-      paddingBottom: restTimer ? 110 : 80,
+      paddingBottom: restEndTime ? 110 : 80,
     }}>
       {/* Discard confirmation */}
       {confirmDiscard && (
@@ -154,7 +154,8 @@ export default function WorkoutScreen({ state, dispatch, logSet, quickLogSet }) 
               expanded={expandedExercise === ei}
               dayKey={activeWorkout.dayKey} history={workoutHistory}
               dayColor={cfg.color} dispatch={dispatch}
-              onLog={logSet} onQuickLog={quickLogSet} />
+              onLog={logSet} onQuickLog={quickLogSet}
+              onNoteChange={updateExerciseNote} />
           ))}
         </div>
 
@@ -208,7 +209,14 @@ export default function WorkoutScreen({ state, dispatch, logSet, quickLogSet }) 
         </div>
       </div>
 
-      {restTimer && <RestTimerOverlay timeLeft={restTimeLeft} onSkip={() => dispatch({ type: "SKIP_REST" })} accent={way.dominant} />}
+      {restEndTime && (
+        <RestTimerOverlay
+          endTime={restEndTime}
+          onSkip={() => dispatch({ type: "END_REST" })}
+          onComplete={() => dispatch({ type: "END_REST" })}
+          accent={way.dominant}
+        />
+      )}
     </div>
   );
 }

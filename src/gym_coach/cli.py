@@ -208,6 +208,57 @@ def sync() -> None:
     console.print()
 
 
+# ─── notes ────────────────────────────────────────────────────
+
+
+@app.command()
+def notes() -> None:
+    """Show all Workout Notes from every session in Notion."""
+    from gym_coach.config import get_database_id
+    from gym_coach.exercises import get_day_config
+    from gym_coach.notion_client import NotionClient
+    from gym_coach.notion_reader import NotionReader
+
+    db_id = get_database_id()
+    if not db_id:
+        console.print("❌ No database ID configured. Run [bold]coach init[/bold] first.", style="red")
+        raise typer.Exit(1)
+
+    console.print("\n📝 Fetching workout notes from Notion...\n")
+
+    client = NotionClient()
+    reader = NotionReader(client)
+    entries = reader.fetch_all_workout_notes(db_id)
+
+    if not entries:
+        console.print("  [dim]No workout notes found.[/dim]\n")
+        return
+
+    console.print(f"  Found [bold]{len(entries)}[/bold] sessions with notes:\n")
+
+    for entry in entries:
+        cfg = get_day_config(entry["day_key"])
+        meta_parts = []
+        if entry["difficulty"]:
+            meta_parts.append(f"Difficulty {entry['difficulty']}/5")
+        if entry["energy"]:
+            meta_parts.append(entry["energy"])
+        if entry["mood"]:
+            meta_parts.append(entry["mood"])
+        meta = "  ·  ".join(meta_parts)
+
+        console.print(
+            Panel(
+                entry["notes"],
+                title=f"{cfg.icon}  [bold]{entry['date']}[/bold]  {entry['workout_name']}",
+                subtitle=f"[dim]{meta}[/dim]" if meta else None,
+                border_style=cfg.color,
+                padding=(0, 1),
+            )
+        )
+    console.print()
+
+
 # ─── review ───────────────────────────────────────────────────
 
 
@@ -237,7 +288,7 @@ def review() -> None:
     )
 
     # Weight trends per day
-    for day_key in ["monday", "tuesday", "thursday"]:
+    for day_key in ["tuesday", "wednesday", "friday"]:
         template = EXERCISES.get(day_key)
         if not template:
             continue

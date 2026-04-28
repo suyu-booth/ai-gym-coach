@@ -13,7 +13,7 @@ def plan_week(
     history: list[WorkoutSession],
     week_number: int,
 ) -> list[WorkoutSession]:
-    """Generate 3 workout sessions for the coming Mon/Tue/Thu.
+    """Generate 3 workout sessions for the coming Tue/Wed/Fri.
 
     For each day:
     - Loads the DayTemplate
@@ -23,7 +23,7 @@ def plan_week(
     """
     sessions: list[WorkoutSession] = []
 
-    # Figure out the dates for next Mon/Tue/Thu
+    # Figure out the dates for next Tue/Wed/Fri
     today = date.today()
     # Find next Monday
     days_until_monday = (7 - today.weekday()) % 7
@@ -32,9 +32,9 @@ def plan_week(
     next_monday = today + timedelta(days=days_until_monday)
 
     day_offsets = {
-        "monday": 0,   # Monday
-        "tuesday": 1,  # Tuesday
-        "thursday": 3, # Thursday
+        "tuesday": 1,   # Tuesday
+        "wednesday": 2, # Wednesday
+        "friday": 4,    # Friday
     }
 
     for day_key, offset in day_offsets.items():

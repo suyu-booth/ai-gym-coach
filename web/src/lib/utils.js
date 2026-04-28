@@ -2,15 +2,15 @@ import { DAY_CONFIG } from "./constants.js";
 
 export function getTodayDayKey() {
   const day = new Date().getDay();
-  if (day === 1) return "monday";
   if (day === 2) return "tuesday";
-  if (day === 4) return "thursday";
+  if (day === 3) return "wednesday";
+  if (day === 5) return "friday";
   if (day === 0) return "sunday";
   return null;
 }
 
 export function getDayNumber(dayKey) {
-  return { monday: 1, tuesday: 2, thursday: 4, sunday: 0 }[dayKey] || 0;
+  return { tuesday: 2, wednesday: 3, friday: 5, sunday: 0 }[dayKey] || 0;
 }
 
 export function getDayConfig(dayKey) {

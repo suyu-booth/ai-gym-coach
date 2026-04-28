@@ -43,7 +43,7 @@ function InlineChoice({ options, value, onChange, accent }) {
   );
 }
 
-export default function CompletionModal({ workout, onComplete, onClose }) {
+export default function CompletionModal({ workout, onComplete, onClose, dispatch }) {
   const cfg = getDayConfig(workout.dayKey);
   const way = dayway(workout.dayKey);
   const [difficulty, setDifficulty] = useState(3);
@@ -173,7 +173,19 @@ export default function CompletionModal({ workout, onComplete, onClose }) {
           </div>
 
           {/* Submit */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 28 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 18, marginTop: 28, flexWrap: "wrap" }}>
+            {sauna && dispatch && (
+              <button
+                onClick={() => {
+                  onComplete({ difficulty, energy, kneeComfort, mood, notes, sauna });
+                  dispatch({ type: "START_SAUNA" });
+                }}
+                className="gh-link"
+                style={{ fontSize: 13, color: palette.sand }}
+              >
+                Log + start sauna 10:00 →
+              </button>
+            )}
             <button
               onClick={() => onComplete({ difficulty, energy, kneeComfort, mood, notes, sauna })}
               className="gh-stamp is-filled"

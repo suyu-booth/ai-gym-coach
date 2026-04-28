@@ -14,10 +14,10 @@ export const palette = {
 
 // Day-type colorways: each day owns a dominant warm accent against ink.
 export const dayways = {
-  monday:   { dominant: palette.horizon, soft: "rgba(231,111,81,0.18)",  faint: "rgba(231,111,81,0.08)",  elevation: 0.20, name: "Push Day", short: "PUSH" },
-  tuesday:  { dominant: palette.sand,    soft: "rgba(233,196,106,0.20)", faint: "rgba(233,196,106,0.08)", elevation: 0.65, name: "Lower Day", short: "LOWER" },
-  thursday: { dominant: palette.coral,   soft: "rgba(244,162,97,0.18)",  faint: "rgba(244,162,97,0.08)",  elevation: 0.45, name: "Pull Day", short: "PULL" },
-  sunday:   { dominant: "#b07a8c",       soft: "rgba(176,122,140,0.18)", faint: "rgba(176,122,140,0.08)", elevation: 0.85, name: "Bachata", short: "DANCE" },
+  tuesday:   { dominant: palette.horizon, soft: "rgba(231,111,81,0.18)",  faint: "rgba(231,111,81,0.08)",  elevation: 0.20, name: "Push Day",  short: "PUSH"  },
+  wednesday: { dominant: palette.coral,   soft: "rgba(244,162,97,0.18)",  faint: "rgba(244,162,97,0.08)",  elevation: 0.45, name: "Pull Day",  short: "PULL"  },
+  friday:    { dominant: palette.sand,    soft: "rgba(233,196,106,0.20)", faint: "rgba(233,196,106,0.08)", elevation: 0.65, name: "Legs Day",  short: "LEGS"  },
+  sunday:    { dominant: "#b07a8c",       soft: "rgba(176,122,140,0.18)", faint: "rgba(176,122,140,0.08)", elevation: 0.85, name: "Bachata",   short: "DANCE" },
 };
 
 export function dayway(dayKey) {

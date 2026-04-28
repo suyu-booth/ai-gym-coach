@@ -227,6 +227,35 @@ class NotionReader:
 
         return sessions
 
+    def fetch_all_workout_notes(self, database_id: str) -> list[dict]:
+        """Fetch all workouts with a non-empty Workout Notes field.
+
+        Skips exercise child-DB queries for speed. Returns lightweight dicts:
+        {date, workout_name, day_key, difficulty, energy, mood, notes}
+        """
+        pages = self.client.query_database(
+            database_id,
+            filter={
+                "property": "Workout Notes",
+                "rich_text": {"is_not_empty": True},
+            },
+            sorts=[{"property": "Date", "direction": "descending"}],
+        )
+
+        results = []
+        for page in pages:
+            props = page.get("properties", {})
+            results.append({
+                "date": _get_date(props, "Date") or "",
+                "workout_name": _get_title(props, "Workout Name"),
+                "day_key": _parse_day_key(_get_select(props, "Day Type")),
+                "difficulty": _parse_difficulty(_get_select(props, "Difficulty")),
+                "energy": _get_select(props, "Energy"),
+                "mood": _get_select(props, "Mood"),
+                "notes": _get_rich_text(props, "Workout Notes"),
+            })
+        return results
+
     def parse_workout_page(self, page: dict) -> WorkoutSession:
         """Parse a Notion page into a WorkoutSession.
 

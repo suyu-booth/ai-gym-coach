@@ -1,11 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { palette, type, dawnGradient } from "../lib/theme.js";
+import { requestNotificationPermission, notificationsEnabled, registerServiceWorker } from "../lib/push.js";
+import { unlockAudio, playChime } from "../lib/sound.js";
 import Field from "./Field.jsx";
 import Glyph from "./Glyph.jsx";
 
 export default function SettingsScreen({ profile, dispatch }) {
   const [form, setForm] = useState({ ...profile });
+  const [notifState, setNotifState] = useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => { registerServiceWorker(); }, []);
+
+  const enableNotifications = async () => {
+    const result = await requestNotificationPermission();
+    setNotifState(result);
+  };
+
+  const soundEnabled = form.soundEnabled !== false;
 
   return (
     <div style={{ minHeight: "100vh", background: dawnGradient, color: palette.cream, padding: "24px 22px 60px" }}>
@@ -42,6 +54,55 @@ export default function SettingsScreen({ profile, dispatch }) {
             >
               Save
             </button>
+          </div>
+
+          {/* Timers */}
+          <div style={{ marginTop: 28, paddingTop: 22, borderTop: `1px solid ${palette.creamFaint}` }}>
+            <div style={{ ...type.caps, color: palette.creamMute, marginBottom: 14 }}>Timers</div>
+
+            {/* Sound */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid ${palette.creamFaint}` }}>
+              <div>
+                <div style={{ ...type.body, color: palette.cream }}>Chime on timer end</div>
+                <div style={{ ...type.small, color: palette.creamMute, marginTop: 2 }}>
+                  {soundEnabled ? "On — tap to test." : "Muted."}
+                </div>
+              </div>
+              <button onClick={() => {
+                  const next = !soundEnabled;
+                  update("soundEnabled", next);
+                  if (next) { unlockAudio(); playChime(); }
+                }}
+                className="gh-link"
+                style={{ fontSize: 13, color: soundEnabled ? palette.sand : palette.creamMute }}>
+                {soundEnabled ? "On" : "Off"}
+              </button>
+            </div>
+
+            {/* Notifications */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid ${palette.creamFaint}` }}>
+              <div>
+                <div style={{ ...type.body, color: palette.cream }}>Background notifications</div>
+                <div style={{ ...type.small, color: palette.creamMute, marginTop: 2 }}>
+                  {notifState === "granted"
+                    ? "Granted — timers fire even when the app is closed."
+                    : notifState === "denied"
+                    ? "Blocked. Enable in Settings → Notifications → AI Gym Coach."
+                    : notifState === "unsupported"
+                    ? "Not supported in this browser."
+                    : "Off — tap to enable."}
+                </div>
+              </div>
+              {notifState !== "granted" && notifState !== "unsupported" && (
+                <button onClick={enableNotifications} className="gh-link" style={{ fontSize: 13, color: palette.coral }}>
+                  Enable
+                </button>
+              )}
+            </div>
+
+            <div style={{ ...type.small, color: palette.creamFaint, marginTop: 10, fontStyle: "italic" }}>
+              On iPhone, install via Share → Add to Home Screen for full background support (iOS 16.4+).
+            </div>
           </div>
 
           <div style={{ marginTop: 28, paddingTop: 22, borderTop: `1px solid ${palette.creamFaint}` }}>
