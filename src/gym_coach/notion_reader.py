@@ -7,6 +7,7 @@ from datetime import date, timedelta
 
 from gym_coach.models import ExerciseLog, SetLog, WorkoutSession
 from gym_coach.notion_client import NotionClient
+from gym_coach.notion_schema import PROPS, TRACK
 
 
 # ─── Set value parsing ────────────────────────────────────────
@@ -105,10 +106,10 @@ def _parse_exercise_row(row: dict) -> ExerciseLog:
     """Parse a single row from the Weight Tracking Log child database."""
     props = row.get("properties", {})
 
-    exercise_name = _get_title(props, "Exercise")
-    suggested = _get_rich_text(props, "Suggested")
-    sets_x_reps = _get_rich_text(props, "Sets x Reps")
-    notes = _get_rich_text(props, "Notes")
+    exercise_name = _get_title(props, TRACK.EXERCISE)
+    suggested = _get_rich_text(props, TRACK.SUGGESTED)
+    sets_x_reps = _get_rich_text(props, TRACK.SETS_X_REPS)
+    notes = _get_rich_text(props, TRACK.NOTES)
 
     is_bodyweight = _detect_bodyweight(exercise_name, suggested)
 
@@ -123,7 +124,7 @@ def _parse_exercise_row(row: dict) -> ExerciseLog:
     # Parse sets from Set 1-4 columns
     sets: list[SetLog] = []
     for i in range(1, 5):
-        col_name = f"Set {i}"
+        col_name = TRACK.SET_COLS[i - 1]
         set_text = _get_rich_text(props, col_name)
         if set_text or i <= _count_expected_sets(sets_x_reps):
             sets.append(parse_set_value(set_text, is_bodyweight))
@@ -226,6 +227,35 @@ class NotionReader:
 
         return sessions
 
+    def fetch_all_workout_notes(self, database_id: str) -> list[dict]:
+        """Fetch all workouts with a non-empty Workout Notes field.
+
+        Skips exercise child-DB queries for speed. Returns lightweight dicts:
+        {date, workout_name, day_key, difficulty, energy, mood, notes}
+        """
+        pages = self.client.query_database(
+            database_id,
+            filter={
+                "property": "Workout Notes",
+                "rich_text": {"is_not_empty": True},
+            },
+            sorts=[{"property": "Date", "direction": "descending"}],
+        )
+
+        results = []
+        for page in pages:
+            props = page.get("properties", {})
+            results.append({
+                "date": _get_date(props, "Date") or "",
+                "workout_name": _get_title(props, "Workout Name"),
+                "day_key": _parse_day_key(_get_select(props, "Day Type")),
+                "difficulty": _parse_difficulty(_get_select(props, "Difficulty")),
+                "energy": _get_select(props, "Energy"),
+                "mood": _get_select(props, "Mood"),
+                "notes": _get_rich_text(props, "Workout Notes"),
+            })
+        return results
+
     def parse_workout_page(self, page: dict) -> WorkoutSession:
         """Parse a Notion page into a WorkoutSession.
 
@@ -238,16 +268,16 @@ class NotionReader:
         props = page.get("properties", {})
 
         # Parse top-level properties
-        workout_name = _get_title(props, "Workout Name")
-        date_str = _get_date(props, "Date") or ""
-        day_type = _get_select(props, "Day Type")
-        duration = _get_number(props, "Duration")
-        difficulty = _parse_difficulty(_get_select(props, "Difficulty"))
-        energy = _get_select(props, "Energy")
-        knee_comfort = _get_select(props, "Knee Comfort")
-        mood = _get_select(props, "Mood")
-        sauna = _get_checkbox(props, "Sauna")
-        notes = _get_rich_text(props, "Workout Notes")
+        workout_name = _get_title(props, PROPS.WORKOUT_NAME)
+        date_str = _get_date(props, PROPS.DATE) or ""
+        day_type = _get_select(props, PROPS.DAY_TYPE)
+        duration = _get_number(props, PROPS.DURATION)
+        difficulty = _parse_difficulty(_get_select(props, PROPS.DIFFICULTY))
+        energy = _get_select(props, PROPS.ENERGY)
+        knee_comfort = _get_select(props, PROPS.KNEE_COMFORT)
+        mood = _get_select(props, PROPS.MOOD)
+        sauna = _get_checkbox(props, PROPS.SAUNA)
+        notes = _get_rich_text(props, PROPS.WORKOUT_NOTES)
 
         day_key = _parse_day_key(day_type)
 

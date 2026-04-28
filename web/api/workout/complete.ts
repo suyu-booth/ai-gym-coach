@@ -11,6 +11,7 @@ import {
   getNotionClient,
   selectProp, numberProp, checkboxProp, richTextProp,
 } from "../_notion.js";
+import { PROPS } from "../_schema.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -28,24 +29,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const properties: any = {};
 
     if (difficulty !== undefined && difficulty !== null) {
-      properties["Difficulty"] = selectProp(String(difficulty));
+      properties[PROPS.DIFFICULTY] = selectProp(String(difficulty));
     }
     if (energy) {
-      properties["Energy"] = selectProp(energy);
+      properties[PROPS.ENERGY] = selectProp(energy);
     }
     if (kneeComfort) {
-      properties["Knee Comfort"] = selectProp(kneeComfort);
+      properties[PROPS.KNEE_COMFORT] = selectProp(kneeComfort);
     }
     if (mood) {
-      properties["Mood"] = selectProp(mood);
+      properties[PROPS.MOOD] = selectProp(mood);
     }
     if (notes) {
-      properties["Workout Notes"] = richTextProp(notes);
+      properties[PROPS.WORKOUT_NOTES] = richTextProp(notes);
     }
     if (duration !== undefined && duration !== null) {
-      properties["Duration"] = numberProp(duration);
+      properties[PROPS.DURATION] = numberProp(duration);
     }
-    properties["Sauna"] = checkboxProp(sauna || false);
+    properties[PROPS.SAUNA] = checkboxProp(sauna || false);
 
     if (Object.keys(properties).length > 0) {
       await notion.pages.update({

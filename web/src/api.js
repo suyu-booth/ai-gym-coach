@@ -46,6 +46,10 @@ export async function updateSet({ rowPageId, setIndex, weight, reps, isBodyweigh
   });
 }
 
+export async function updateExerciseNote({ rowPageId, notes }) {
+  return request("PATCH", "/api/workout/note", { rowPageId, notes });
+}
+
 export async function completeWorkout({ pageId, difficulty, energy, kneeComfort, mood, notes, sauna, duration }) {
   return request("POST", "/api/workout/complete", {
     pageId,
@@ -57,6 +61,10 @@ export async function completeWorkout({ pageId, difficulty, energy, kneeComfort,
     sauna,
     duration,
   });
+}
+
+export async function planNextWeek() {
+  return request("POST", "/api/week/plan", {});
 }
 
 export async function healthCheck() {

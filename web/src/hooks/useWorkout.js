@@ -6,6 +6,8 @@
 import { useReducer, useEffect, useRef, useCallback } from "react";
 import { EXERCISES, DEFAULT_PROFILE } from "../lib/constants.js";
 import { getTargetWeight } from "../lib/progressive.js";
+import { unlockAudio, setMuted } from "./../lib/sound.js";
+import { scheduleTimer, cancelTimer, registerServiceWorker } from "./../lib/push.js";
 import * as api from "../api.js";
 
 // ─── Storage keys ──────────────────────────────────────────
@@ -38,11 +40,14 @@ const initialState = {
   activeWorkout: null,
   expandedExercise: null,
   completionModal: false,
-  restTimer: null,
-  restTimeLeft: 0,
+  restEndTime: null,   // absolute ms epoch when rest finishes
+  saunaEndTime: null,  // absolute ms epoch when sauna finishes
   toast: null,
   syncing: false,
 };
+
+const REST_DURATION_SEC = 90;
+const SAUNA_DURATION_SEC = 600;
 
 function reducer(state, action) {
   switch (action.type) {
@@ -124,6 +129,15 @@ function reducer(state, action) {
       return { ...state, activeWorkout: { ...state.activeWorkout, exercises } };
     }
 
+    case "UPDATE_EXERCISE_NOTE": {
+      if (!state.activeWorkout) return state;
+      const { exerciseIdx, userNote } = action.payload;
+      const exercises = state.activeWorkout.exercises.map((ex, ei) =>
+        ei === exerciseIdx ? { ...ex, userNote } : ex
+      );
+      return { ...state, activeWorkout: { ...state.activeWorkout, exercises } };
+    }
+
     case "SHOW_COMPLETION":
       return { ...state, completionModal: true };
     case "HIDE_COMPLETION":
@@ -153,13 +167,14 @@ function reducer(state, action) {
       return { ...state, activeWorkout: null, screen: "dashboard", completionModal: false };
 
     case "START_REST":
-      return { ...state, restTimer: action.payload, restTimeLeft: action.payload };
-    case "TICK_REST":
-      return state.restTimeLeft > 0
-        ? { ...state, restTimeLeft: state.restTimeLeft - 1 }
-        : { ...state, restTimer: null, restTimeLeft: 0 };
-    case "SKIP_REST":
-      return { ...state, restTimer: null, restTimeLeft: 0 };
+      return { ...state, restEndTime: Date.now() + REST_DURATION_SEC * 1000 };
+    case "END_REST":
+      return { ...state, restEndTime: null };
+
+    case "START_SAUNA":
+      return { ...state, saunaEndTime: Date.now() + (action.payload?.durationSec || SAUNA_DURATION_SEC) * 1000 };
+    case "END_SAUNA":
+      return { ...state, saunaEndTime: null };
 
     case "SHOW_TOAST":
       return { ...state, toast: action.payload };
@@ -180,7 +195,7 @@ function reducer(state, action) {
 
 export function useWorkout() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const restRef = useRef(null);
+  const noteTimers = useRef({});
 
   // ─── Initialize from localStorage
   useEffect(() => {
@@ -235,14 +250,6 @@ export function useWorkout() {
     }
   }, [state.activeWorkout, state.screen]);
 
-  // ─── Rest timer
-  useEffect(() => {
-    if (state.restTimer && state.restTimeLeft > 0) {
-      restRef.current = setInterval(() => dispatch({ type: "TICK_REST" }), 1000);
-      return () => clearInterval(restRef.current);
-    }
-    if (restRef.current) clearInterval(restRef.current);
-  }, [state.restTimer, state.restTimeLeft > 0]);
 
   // ─── Toast on recent completion
   useEffect(() => {
@@ -254,10 +261,44 @@ export function useWorkout() {
     }
   }, [state.workoutHistory.length]);
 
+  // ─── Sound mute toggle reflects profile setting
+  useEffect(() => {
+    setMuted(state.profile?.soundEnabled === false);
+  }, [state.profile?.soundEnabled]);
+
+  // ─── Register service worker once
+  useEffect(() => { registerServiceWorker(); }, []);
+
+  // ─── Schedule background notification when rest/sauna start; cancel on end
+  useEffect(() => {
+    if (state.restEndTime) {
+      scheduleTimer({
+        id: "rest", endTime: state.restEndTime, tag: "rest-timer",
+        title: "Rest complete", body: "Time for the next set.",
+      });
+    } else {
+      cancelTimer("rest");
+    }
+  }, [state.restEndTime]);
+
+  useEffect(() => {
+    if (state.saunaEndTime) {
+      scheduleTimer({
+        id: "sauna", endTime: state.saunaEndTime, tag: "sauna-timer",
+        title: "Sauna done", body: "Step out, hydrate, recover.",
+      });
+    } else {
+      cancelTimer("sauna");
+    }
+  }, [state.saunaEndTime]);
+
   // ─── Action: start workout (creates Notion page)
   const startWorkout = useCallback(async (dayKey) => {
     const template = EXERCISES[dayKey];
     if (!template) return;
+
+    // Unlock the audio context now (user gesture) so the chime can play later on iOS.
+    unlockAudio();
 
     const workout = {
       id: Date.now().toString(),
@@ -299,7 +340,7 @@ export function useWorkout() {
   // ─── Action: log a set (updates Notion in background)
   const logSet = useCallback((exerciseIdx, setIdx, weight, reps) => {
     dispatch({ type: "LOG_SET", payload: { exerciseIdx, setIdx, weight, reps } });
-    dispatch({ type: "START_REST", payload: 90 });
+    dispatch({ type: "START_REST" });
 
     // Sync to Notion in background
     const active = state.activeWorkout;
@@ -323,7 +364,7 @@ export function useWorkout() {
   // ─── Action: quick-log a set
   const quickLogSet = useCallback((exerciseIdx, setIdx) => {
     dispatch({ type: "QUICK_LOG_SET", payload: { exerciseIdx, setIdx } });
-    dispatch({ type: "START_REST", payload: 90 });
+    dispatch({ type: "START_REST" });
 
     // Sync to Notion in background
     const active = state.activeWorkout;
@@ -342,6 +383,26 @@ export function useWorkout() {
         }).catch((err) => console.warn("Set sync failed:", err.message));
       }
     }
+  }, [state.activeWorkout]);
+
+  // ─── Action: update exercise note (debounced sync)
+  const updateExerciseNote = useCallback((exerciseIdx, userNote) => {
+    dispatch({ type: "UPDATE_EXERCISE_NOTE", payload: { exerciseIdx, userNote } });
+
+    const active = state.activeWorkout;
+    if (!active?.exerciseRowIds) return;
+    const ex = active.exercises[exerciseIdx];
+    const rowId = active.exerciseRowIds[ex.id];
+    if (!rowId) return;
+
+    // Persist as guidance + user note in the Notes column.
+    const persisted = [ex.notes, userNote].filter(Boolean).join(" — ");
+
+    if (noteTimers.current[rowId]) clearTimeout(noteTimers.current[rowId]);
+    noteTimers.current[rowId] = setTimeout(() => {
+      api.updateExerciseNote({ rowPageId: rowId, notes: persisted })
+        .catch((err) => console.warn("Note sync failed:", err.message));
+    }, 800);
   }, [state.activeWorkout]);
 
   // ─── Action: complete workout (updates Notion)
@@ -370,5 +431,6 @@ export function useWorkout() {
     logSet,
     quickLogSet,
     finishWorkout,
+    updateExerciseNote,
   };
 }

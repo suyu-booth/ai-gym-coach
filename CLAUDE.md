@@ -73,6 +73,80 @@ src/gym_coach/
 - **Knee protocol**: Always active — exercises are pre-selected to be knee-friendly
 - **Completion metadata values include emojis** (e.g. "⚡ High", "✅ No pain", "😊 Great") — must match JSX exactly
 
+## Web App Design System — Golden Hour
+
+The web app (`web/`) uses the **Golden Hour** design concept. All UI work must stay consistent with it.
+
+### Concept
+
+> *Every workout is a sunrise. You start in the dark, and by the last set, the room is lit.*
+
+The app treats the 7 AM training schedule as its core metaphor. The workout screen background is a live sky gradient (`skyGradient()` in `web/src/lib/theme.js`) that interpolates from deep teal to burnt orange to warm sand as `completedSets / totalSets` increases — the user literally watches the sun rise as they lift.
+
+### Palette (from Sunset Boulevard)
+
+| Token | Hex | Use |
+|---|---|---|
+| `--ink` / `palette.ink` | `#1A2A33` | Page backgrounds |
+| `--ink-2` / `palette.ink2` | `#264653` | Card surfaces, overlays |
+| `--horizon` / `palette.horizon` | `#e76f51` | Primary CTA, day accent (Mon) |
+| `--coral` / `palette.coral` | `#f4a261` | Secondary warmth, hover (Thu) |
+| `--sand` / `palette.sand` | `#e9c46a` | Completion state, highlights (Tue) |
+| `--cream` / `palette.cream` | `#FAF3E3` | Primary text (warm white, not pure white) |
+| `--cream-mute` | `rgba(250,243,227,0.55)` | Secondary text, labels |
+| `--cream-faint` | `rgba(250,243,227,0.20)` | Dividers, inactive elements |
+
+**Day-type colorways** — each day owns a dominant accent (see `dayway()` in `theme.js`):
+- Monday (Push) → `palette.horizon` (burnt orange)
+- Tuesday (Lower) → `palette.sand` (warm sand)
+- Thursday (Pull) → `palette.coral` (coral)
+- Sunday (Bachata) → `#b07a8c` (dusk purple)
+
+### Typography
+
+- **Display/numerals**: **Fraunces** (serif, optical-size variable font). Used for all hero numerals, workout titles, session numbers, set weights/reps. Always the primary typographic voice.
+- **UI/body**: **Inter** (sans-serif). Labels, descriptions, button text, body copy.
+- **Small-caps deck-heads**: Inter 600, `letter-spacing: 0.18–0.20em`, `text-transform: uppercase`, 11–12px. Used like magazine deck-heads ("THIS WEEK", "UPPER PUSH", "SET 1").
+- **Never** use pure white (`#fff`) for text — always `palette.cream` (`#FAF3E3`).
+- Numbers that matter (weights, reps, session counts) are **always Fraunces**, oversized — they are the hero content.
+
+### Motif: The Horizon
+
+A single visual primitive — a horizontal line with sun(s) along it — is the system-wide progress metaphor. Use `<Horizon>` (`web/src/components/Horizon.jsx`) everywhere progress is shown:
+- Weekly progress: three suns above/below the line for Mon/Tue/Thu
+- Workout progress: one sun walking left→right, rising as sets complete
+- Rest timer: one sun arcing across
+- Loading/setup screens: decorative horizon header
+
+**Never** use ring charts or bar progress indicators. The horizon is the only progress motif.
+
+### Iconography
+
+Use `<Glyph name="...">` (`web/src/components/Glyph.jsx`) exclusively. Available glyphs: `sun`, `sun-rising`, `sun-noon`, `sun-arc`, `sun-set`, `horizon`, `plate`, `arc`, `flame`, `wave`, `check`, `arrow-right`, `arrow-left`, `chevron-down`, `settings`, `stopwatch`, `pause`.
+
+**Never** use emoji in the UI. Emoji exist only in Notion-bound data values (e.g. `"⚡ High"`) — strip them with `stripEmoji()` from `theme.js` before display.
+
+### Interactive Patterns
+
+- **Primary CTA**: `.gh-link` class — typeset text link with an animated underline that grows from left. Fraunces serif. No rounded buttons.
+- **Action button**: `.gh-stamp` class — outlined rectangle, fills on press like a rubber stamp. Small-caps label.
+- **Inputs**: `.gh-input` class — underline-only (no box), Fraunces serif for values.
+- **No rounded corners** on interactive elements — the design uses square/sharp edges throughout.
+
+### Layout Voice
+
+- **Editorial, asymmetric** — not card grids. Exercise entries are numbered editorial items (Fraunces `01`, `02`…) separated by hairlines, not boxed cards.
+- Completed set data renders as a caption: `47.5 LB × 10` in large Fraunces with a checkmark glyph.
+- Section deck-heads are small-caps Inter, not heading tags.
+- Use `dawnGradient` from `theme.js` as the base page background for all static screens (Dashboard, History, Setup, Settings).
+
+### Key Files
+
+- `web/src/lib/theme.js` — all tokens, `skyGradient()`, `dawnGradient`, `dayway()`, `stripEmoji()`
+- `web/src/components/Glyph.jsx` — icon system
+- `web/src/components/Horizon.jsx` — horizon + sun primitive
+- `web/src/index.css` — CSS custom properties, `.gh-link`, `.gh-stamp`, `.gh-input`, `.gh-caps`, keyframes
+
 ## Code Conventions
 
 - Use Pydantic v2 models for all data structures
