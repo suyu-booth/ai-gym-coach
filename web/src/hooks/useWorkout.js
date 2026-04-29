@@ -172,7 +172,11 @@ function reducer(state, action) {
       return { ...state, restEndTime: null };
 
     case "START_SAUNA":
-      return { ...state, saunaEndTime: Date.now() + (action.payload?.durationSec || SAUNA_DURATION_SEC) * 1000 };
+      return {
+        ...state,
+        saunaEndTime: Date.now() + (action.payload?.durationSec || SAUNA_DURATION_SEC) * 1000,
+        activeWorkout: state.activeWorkout ? { ...state.activeWorkout, sauna: true } : state.activeWorkout,
+      };
     case "END_SAUNA":
       return { ...state, saunaEndTime: null };
 
@@ -407,15 +411,15 @@ export function useWorkout() {
 
   // ─── Action: complete workout (updates Notion)
   const finishWorkout = useCallback(async (metadata) => {
-    dispatch({ type: "COMPLETE_WORKOUT", payload: metadata });
-
-    // Sync to Notion
     const active = state.activeWorkout;
+    const fullMetadata = { ...metadata, sauna: active?.sauna || false };
+    dispatch({ type: "COMPLETE_WORKOUT", payload: fullMetadata });
+
     if (active?.notionPageId) {
       try {
         await api.completeWorkout({
           pageId: active.notionPageId,
-          ...metadata,
+          ...fullMetadata,
           duration: Math.round((Date.now() - active.startTime) / 60000),
         });
       } catch (err) {

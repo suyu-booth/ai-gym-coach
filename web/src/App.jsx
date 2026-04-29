@@ -54,7 +54,6 @@ export default function App() {
           onComplete={finishWorkout}
           onClose={() => dispatch({ type: "HIDE_COMPLETION" })}
           dayColor={getDayConfig(state.activeWorkout.dayKey).color}
-          dispatch={dispatch}
         />
       )}
 
