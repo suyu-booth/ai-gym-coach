@@ -110,25 +110,6 @@ function reducer(state, action) {
       return { ...state, activeWorkout: { ...state.activeWorkout, exercises } };
     }
 
-    case "QUICK_LOG_SET": {
-      if (!state.activeWorkout) return state;
-      const { exerciseIdx, setIdx } = action.payload;
-      const ex = state.activeWorkout.exercises[exerciseIdx];
-      const targetW = ex.targetWeight || ex.defaultWeight;
-      const targetR = parseInt(ex.reps) || 12;
-      const exercises = state.activeWorkout.exercises.map((e, ei) =>
-        ei === exerciseIdx
-          ? {
-              ...e,
-              sets: e.sets.map((s, si) =>
-                si === setIdx ? { weight: targetW, reps: targetR, completed: true } : s
-              ),
-            }
-          : e
-      );
-      return { ...state, activeWorkout: { ...state.activeWorkout, exercises } };
-    }
-
     case "UPDATE_EXERCISE_NOTE": {
       if (!state.activeWorkout) return state;
       const { exerciseIdx, userNote } = action.payload;
@@ -361,30 +342,6 @@ export function useWorkout() {
     }
   }, [state.activeWorkout]);
 
-  // ─── Action: quick-log a set
-  const quickLogSet = useCallback((exerciseIdx, setIdx) => {
-    dispatch({ type: "QUICK_LOG_SET", payload: { exerciseIdx, setIdx } });
-    dispatch({ type: "START_REST" });
-
-    // Sync to Notion in background
-    const active = state.activeWorkout;
-    if (active?.exerciseRowIds) {
-      const ex = active.exercises[exerciseIdx];
-      const rowId = active.exerciseRowIds[ex.id];
-      if (rowId) {
-        const targetW = ex.targetWeight || ex.defaultWeight;
-        const targetR = parseInt(ex.reps) || 12;
-        api.updateSet({
-          rowPageId: rowId,
-          setIndex: setIdx + 1,
-          weight: targetW,
-          reps: targetR,
-          isBodyweight: ex.isBodyweight,
-        }).catch((err) => console.warn("Set sync failed:", err.message));
-      }
-    }
-  }, [state.activeWorkout]);
-
   // ─── Action: update exercise note (debounced sync)
   const updateExerciseNote = useCallback((exerciseIdx, userNote) => {
     dispatch({ type: "UPDATE_EXERCISE_NOTE", payload: { exerciseIdx, userNote } });
@@ -429,7 +386,6 @@ export function useWorkout() {
     dispatch,
     startWorkout,
     logSet,
-    quickLogSet,
     finishWorkout,
     updateExerciseNote,
   };
