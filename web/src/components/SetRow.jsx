@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { palette, type } from "../lib/theme.js";
 import Glyph from "./Glyph.jsx";
 
-export default function SetRow({ set, setIdx, exerciseIdx, exercise, onLog, onQuickLog, dayColor }) {
+export default function SetRow({ set, setIdx, exerciseIdx, exercise, onLog, dayColor }) {
   const [editing, setEditing] = useState(false);
   const [w, setW] = useState(set.weight ?? exercise.targetWeight ?? "");
   const [r, setR] = useState(set.reps ?? parseInt(exercise.reps) ?? "");
@@ -100,11 +100,6 @@ export default function SetRow({ set, setIdx, exerciseIdx, exercise, onLog, onQu
       <span style={{ ...type.caps, color: palette.creamMute, fontSize: 9 }}>{exercise.isBodyweight ? "reps" : ""}</span>
 
       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
-        {!exercise.isBodyweight && !set.completed && (
-          <button onClick={() => onQuickLog(exerciseIdx, setIdx)} className="gh-link" style={{ fontSize: 13 }}>
-            quick log
-          </button>
-        )}
         <button onClick={saveSet} className="gh-stamp">Log</button>
       </div>
     </div>
