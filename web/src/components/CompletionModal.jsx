@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  EXERCISES, DIFFICULTY_NAMES,
-  ENERGY_OPTIONS, KNEE_COMFORT_OPTIONS, MOOD_OPTIONS,
-} from "../lib/constants.js";
+import { DIFFICULTY_NAMES, ENERGY_OPTIONS } from "../lib/constants.js";
 import { palette, type, dayway, skyGradient } from "../lib/theme.js";
 import { getDayConfig } from "../lib/utils.js";
 import Glyph from "./Glyph.jsx";
@@ -43,15 +40,12 @@ function InlineChoice({ options, value, onChange, accent }) {
   );
 }
 
-export default function CompletionModal({ workout, onComplete, onClose, dispatch }) {
+export default function CompletionModal({ workout, onComplete, onClose }) {
   const cfg = getDayConfig(workout.dayKey);
   const way = dayway(workout.dayKey);
   const [difficulty, setDifficulty] = useState(3);
   const [energy, setEnergy] = useState(ENERGY_OPTIONS[0].value);
-  const [kneeComfort, setKneeComfort] = useState(KNEE_COMFORT_OPTIONS[0].value);
-  const [mood, setMood] = useState(MOOD_OPTIONS[1].value);
   const [notes, setNotes] = useState("");
-  const [sauna, setSauna] = useState(EXERCISES[workout.dayKey]?.hasSauna || false);
 
   const setsCompleted = workout.exercises.reduce((a, e) => a + e.sets.filter(s => s.completed).length, 0);
   const totalSets = workout.exercises.reduce((a, e) => a + e.sets.length, 0);
@@ -135,29 +129,6 @@ export default function CompletionModal({ workout, onComplete, onClose, dispatch
           <SpecRow label="Energy">
             <InlineChoice options={ENERGY_OPTIONS} value={energy} onChange={setEnergy} accent={way.dominant} />
           </SpecRow>
-          <SpecRow label="Knee">
-            <InlineChoice options={KNEE_COMFORT_OPTIONS} value={kneeComfort} onChange={setKneeComfort} accent={way.dominant} />
-          </SpecRow>
-          <SpecRow label="Mood">
-            <InlineChoice options={MOOD_OPTIONS} value={mood} onChange={setMood} accent={way.dominant} />
-          </SpecRow>
-
-          {/* Sauna toggle */}
-          <div style={{
-            padding: "16px 0", borderTop: `1px solid ${palette.creamFaint}`,
-            display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16,
-          }}>
-            <div style={{ ...type.caps, color: palette.creamMute }}>Recovery</div>
-            <button onClick={() => setSauna(!sauna)} style={{
-              background: "none", border: "none", cursor: "pointer", padding: 0,
-              fontFamily: '"Fraunces", serif', fontSize: 16, fontWeight: sauna ? 600 : 500,
-              fontVariationSettings: '"opsz" 64', fontStyle: sauna ? "normal" : "italic",
-              color: sauna ? palette.sand : palette.creamMute,
-              borderBottom: sauna ? `1.5px solid ${palette.sand}` : `1.5px solid transparent`,
-            }}>
-              {sauna ? "+ sauna recovery" : "no sauna"}
-            </button>
-          </div>
 
           {/* Notes */}
           <div style={{ padding: "20px 0 8px", borderTop: `1px solid ${palette.creamFaint}` }}>
@@ -174,20 +145,8 @@ export default function CompletionModal({ workout, onComplete, onClose, dispatch
 
           {/* Submit */}
           <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 18, marginTop: 28, flexWrap: "wrap" }}>
-            {sauna && dispatch && (
-              <button
-                onClick={() => {
-                  onComplete({ difficulty, energy, kneeComfort, mood, notes, sauna });
-                  dispatch({ type: "START_SAUNA" });
-                }}
-                className="gh-link"
-                style={{ fontSize: 13, color: palette.sand }}
-              >
-                Log + start sauna 10:00 →
-              </button>
-            )}
             <button
-              onClick={() => onComplete({ difficulty, energy, kneeComfort, mood, notes, sauna })}
+              onClick={() => onComplete({ difficulty, energy, notes })}
               className="gh-stamp is-filled"
               style={{ padding: "14px 28px", fontSize: 12 }}
             >

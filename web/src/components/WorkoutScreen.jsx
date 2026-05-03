@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { EXERCISES } from "../lib/constants.js";
-import { getDayConfig } from "../lib/utils.js";
+import { getDayConfig, formatTime } from "../lib/utils.js";
 import { palette, type, dayway, skyGradient } from "../lib/theme.js";
 import ExerciseCard from "./ExerciseCard.jsx";
 import RestTimerOverlay from "./RestTimerOverlay.jsx";
@@ -8,7 +8,7 @@ import Glyph from "./Glyph.jsx";
 import Horizon from "./Horizon.jsx";
 
 export default function WorkoutScreen({ state, dispatch, logSet, updateExerciseNote }) {
-  const { activeWorkout, expandedExercise, workoutHistory, restEndTime } = state;
+  const { activeWorkout, expandedExercise, workoutHistory, restEndTime, saunaEndTime } = state;
   if (!activeWorkout) return null;
 
   const cfg = getDayConfig(activeWorkout.dayKey);
@@ -27,6 +27,13 @@ export default function WorkoutScreen({ state, dispatch, logSet, updateExerciseN
   }, [activeWorkout.startTime]);
 
   const allDone = completedSets === totalSets && totalSets > 0;
+
+  const [saunaNow, setSaunaNow] = useState(Date.now());
+  useEffect(() => {
+    if (!saunaEndTime) return;
+    const iv = setInterval(() => setSaunaNow(Date.now()), 1000);
+    return () => clearInterval(iv);
+  }, [saunaEndTime]);
 
   // The marquee move: page background gradient driven by progress.
   const bg = skyGradient(progressPct, way.dominant);
@@ -161,14 +168,34 @@ export default function WorkoutScreen({ state, dispatch, logSet, updateExerciseN
 
         {/* Sauna */}
         {template.hasSauna && (
-          <div style={{ padding: "14px 0", display: "flex", alignItems: "center", gap: 14, borderTop: `1px solid ${palette.creamFaint}` }}>
+          <div
+            onClick={() => !saunaEndTime && dispatch({ type: "START_SAUNA" })}
+            style={{
+              padding: "14px 0", display: "flex", alignItems: "center", gap: 14,
+              borderTop: `1px solid ${palette.creamFaint}`,
+              cursor: saunaEndTime ? "default" : "pointer",
+            }}
+          >
             <Glyph name="wave" size={20} color={palette.sand} />
             <div style={{ flex: 1 }}>
-              <div style={{ ...type.caps, color: palette.sand }}>Sauna · 10 min</div>
+              <div style={{ ...type.caps, color: palette.sand }}>
+                {saunaEndTime ? "Sauna running" : "Sauna · 10 min"}
+              </div>
               <div style={{ ...type.small, color: palette.creamMute, marginTop: 2, fontStyle: "italic" }}>
-                160–175°F · hydrate before & after
+                {saunaEndTime ? "continues after workout" : "160–175°F · hydrate before & after"}
               </div>
             </div>
+            {saunaEndTime ? (
+              <div style={{
+                fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 600,
+                color: palette.sand, fontVariantNumeric: "lining-nums tabular-nums",
+                fontVariationSettings: '"opsz" 72', letterSpacing: "-0.02em",
+              }}>
+                {formatTime(Math.max(0, Math.ceil((saunaEndTime - saunaNow) / 1000)))}
+              </div>
+            ) : (
+              <span style={{ ...type.caps, color: palette.creamMute, fontSize: 10 }}>tap →</span>
+            )}
           </div>
         )}
 
