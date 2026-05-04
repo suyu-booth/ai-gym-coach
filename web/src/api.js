@@ -63,6 +63,10 @@ export async function completeWorkout({ pageId, difficulty, energy, kneeComfort,
   });
 }
 
+export async function discardWorkout({ pageId }) {
+  return request("DELETE", "/api/workout/discard", { pageId });
+}
+
 export async function planNextWeek() {
   return request("POST", "/api/week/plan", {});
 }

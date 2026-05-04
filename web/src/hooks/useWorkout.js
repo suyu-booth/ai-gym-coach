@@ -366,6 +366,20 @@ export function useWorkout() {
     }, 800);
   }, [state.activeWorkout]);
 
+  // ─── Action: discard workout (trashes Notion page)
+  const discardWorkout = useCallback(async () => {
+    const active = state.activeWorkout;
+    dispatch({ type: "DISCARD_WORKOUT" });
+
+    if (active?.notionPageId) {
+      try {
+        await api.discardWorkout({ pageId: active.notionPageId });
+      } catch (err) {
+        console.error("Discard sync failed:", err);
+      }
+    }
+  }, [state.activeWorkout]);
+
   // ─── Action: complete workout (updates Notion)
   const finishWorkout = useCallback(async (metadata) => {
     const active = state.activeWorkout;
@@ -391,6 +405,7 @@ export function useWorkout() {
     startWorkout,
     logSet,
     finishWorkout,
+    discardWorkout,
     updateExerciseNote,
   };
 }

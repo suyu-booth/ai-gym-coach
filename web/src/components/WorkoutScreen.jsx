@@ -7,7 +7,7 @@ import RestTimerOverlay from "./RestTimerOverlay.jsx";
 import Glyph from "./Glyph.jsx";
 import Horizon from "./Horizon.jsx";
 
-export default function WorkoutScreen({ state, dispatch, logSet, updateExerciseNote }) {
+export default function WorkoutScreen({ state, dispatch, logSet, discardWorkout, updateExerciseNote }) {
   const { activeWorkout, expandedExercise, workoutHistory, restEndTime, saunaEndTime } = state;
   if (!activeWorkout) return null;
 
@@ -71,7 +71,7 @@ export default function WorkoutScreen({ state, dispatch, logSet, updateExerciseN
               <button onClick={() => setConfirmDiscard(false)} className="gh-link" style={{ fontSize: 14, color: palette.creamMute }}>
                 Stay
               </button>
-              <button onClick={() => dispatch({ type: "DISCARD_WORKOUT" })} className="gh-stamp">
+              <button onClick={() => discardWorkout()} className="gh-stamp">
                 Discard
               </button>
             </div>

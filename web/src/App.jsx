@@ -13,7 +13,7 @@ import SaunaTimerOverlay from "./components/SaunaTimerOverlay.jsx";
 import Horizon from "./components/Horizon.jsx";
 
 export default function App() {
-  const { state, dispatch, startWorkout, logSet, finishWorkout, updateExerciseNote } = useWorkout();
+  const { state, dispatch, startWorkout, logSet, finishWorkout, discardWorkout, updateExerciseNote } = useWorkout();
 
   if (state.screen === "loading") {
     return (
@@ -43,7 +43,7 @@ export default function App() {
 
       {state.screen === "setup" && <SetupScreen profile={state.profile} dispatch={dispatch} />}
       {state.screen === "dashboard" && <Dashboard state={state} dispatch={dispatch} startWorkout={startWorkout} />}
-      {state.screen === "workout" && <WorkoutScreen state={state} dispatch={dispatch} logSet={logSet} updateExerciseNote={updateExerciseNote} />}
+      {state.screen === "workout" && <WorkoutScreen state={state} dispatch={dispatch} logSet={logSet} discardWorkout={discardWorkout} updateExerciseNote={updateExerciseNote} />}
       {state.screen === "history" && <HistoryScreen history={state.workoutHistory} dispatch={dispatch} />}
       {state.screen === "settings" && <SettingsScreen profile={state.profile} dispatch={dispatch} />}
       {state.screen === "weeklySummary" && <WeeklySummary state={state} dispatch={dispatch} />}
